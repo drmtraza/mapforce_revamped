@@ -1,7 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { api } from './api';
+import { api, type ApiResponse } from './api';
+
+type Workspaces = ApiResponse<'/api/v1/workspaces', 'get'>;
+export type WorkspaceRole = Workspaces['data'][number]['role'];
 
 interface State<T> {
   data: T | null;
@@ -27,4 +30,13 @@ export function useApi<T>(path: string | null, workspaceId?: string) {
 
   const reload = useCallback(() => setNonce((n) => n + 1), []);
   return { ...state, reload };
+}
+
+/**
+ * The caller's role in the workspace, used only to hide controls they cannot use. The API
+ * enforces every permission regardless.
+ */
+export function useWorkspaceRole(workspaceId: string): WorkspaceRole | null {
+  const { data } = useApi<Workspaces>('/api/v1/workspaces');
+  return data?.data.find((w) => w.id === workspaceId)?.role ?? null;
 }

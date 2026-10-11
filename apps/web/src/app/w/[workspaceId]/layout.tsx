@@ -7,8 +7,11 @@ import { AppHeader } from '@/components/app-header';
 
 const NAV = [
   { href: 'companies', label: 'Companies' },
+  { href: 'discovery', label: 'Discovery' },
+  { href: 'imports', label: 'Imports' },
   { href: 'icp', label: 'Ideal customer profiles' },
   { href: 'audit', label: 'Audit trail' },
+  { href: 'settings', label: 'Settings' },
 ];
 
 export default function WorkspaceLayout({ children }: { children: ReactNode }) {

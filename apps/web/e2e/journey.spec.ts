@@ -1,27 +1,5 @@
-import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
-
-// Local-only Keycloak users from infra/compose/keycloak/mapforce-realm.json.
-const ALICE = { username: 'alice@tenant-a.test', password: 'alice-local-only' };
-const BOB = { username: 'bob@tenant-b.test', password: 'bob-local-only' };
-
-async function signIn(page: Page, user: { username: string; password: string }) {
-  await page.goto('/login');
-  await expectAccessible(page);
-  await page.getByRole('link', { name: 'Sign in with your organization' }).click();
-  await page.locator('#username').fill(user.username);
-  await page.locator('#password').fill(user.password);
-  await page.locator('#kc-login').click();
-  await expect(page).toHaveURL(/\/workspaces$/);
-}
-
-async function expectAccessible(page: Page) {
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-  const serious = results.violations.filter(
-    (v) => v.impact === 'serious' || v.impact === 'critical',
-  );
-  expect(serious.map((v) => `${v.id}: ${v.help}`)).toEqual([]);
-}
+import { expect, test } from '@playwright/test';
+import { ALICE, BOB, createWorkspace, expectAccessible, signIn } from './helpers';
 
 test.describe.serial('first milestone journey', () => {
   let companyUrl = '';
@@ -29,11 +7,7 @@ test.describe.serial('first milestone journey', () => {
   test('alice researches a company end to end', async ({ page }) => {
     await signIn(page, ALICE);
     await expectAccessible(page);
-
-    const workspaceName = `E2E ${Date.now()}`;
-    await page.getByLabel('Workspace name').fill(workspaceName);
-    await page.getByRole('button', { name: 'Create workspace' }).click();
-    await expect(page).toHaveURL(/\/w\/[0-9a-f-]+\/companies$/);
+    await createWorkspace(page, `E2E ${Date.now()}`);
 
     await page.getByRole('link', { name: 'Ideal customer profiles' }).click();
     await page.getByLabel('Name', { exact: true }).fill('US, UK and Europe software');
@@ -72,8 +46,8 @@ test.describe.serial('first milestone journey', () => {
     await expect(orgMap.getByText('reports to').first()).toBeVisible();
     await expect(orgMap.getByText('verified').first()).toBeVisible();
     await expect(orgMap.getByText('inferred').first()).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Source freshness' })).toBeVisible();
     await expectAccessible(page);
-    await page.screenshot({ path: test.info().outputPath('company.png'), fullPage: true });
 
     await people.getByRole('link').first().click();
     await expect(page.getByRole('heading', { name: 'Claims and provenance' })).toBeVisible();

@@ -341,9 +341,28 @@ legend {
   background: var(--danger-bg);
   color: var(--danger-text);
 }
-.badge-mock {
+.badge-mock,
+.badge-status-default {
   background: var(--mock-bg);
   color: var(--mock-text);
+}
+.badge-status-available,
+.badge-status-fresh,
+.badge-status-created,
+.badge-status-enabled {
+  background: var(--fact-bg);
+  color: var(--fact-text);
+}
+.badge-status-stale,
+.badge-status-existing,
+.badge-status-duplicate_in_file,
+.badge-status-disabled {
+  background: var(--inference-bg);
+  color: var(--inference-text);
+}
+.badge-status-invalid {
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 
 .notice {

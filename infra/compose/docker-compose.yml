@@ -100,6 +100,9 @@ services:
       TEMPORAL_NAMESPACE: default
       RESEARCH_TASK_QUEUE: research-python
       LOG_LEVEL: INFO
+      FEATURE_MOCK_PROVIDERS: 'true'
+      FEATURE_COMPANY_SITE_CRAWLER: 'true'
+      CRAWLER_INFO_URL: https://example.invalid/mapforce-bot
     depends_on:
       temporal:
         condition: service_healthy

@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { useCallback } from 'react';
 import type { OrgMapV2 } from '@mapforce/contracts';
 import { ConfidenceBadge, StatusBadge } from '@/components/badges';
-import { EvidenceList } from '@/components/evidence-list';
+import { EvidenceList, formatDate } from '@/components/evidence-list';
 import { Empty, ErrorNotice, Loading } from '@/components/feedback';
 import { OrgMapView } from '@/components/org-map';
 import { ResearchPanel } from '@/components/research-panel';
@@ -15,6 +15,7 @@ import { useApi } from '@/lib/use-api';
 type Company = ApiResponse<'/api/v1/companies/{id}', 'get'>;
 type Evidence = ApiResponse<'/api/v1/companies/{id}/evidence', 'get'>;
 type People = ApiResponse<'/api/v1/companies/{id}/people', 'get'>;
+type Freshness = ApiResponse<'/api/v1/companies/{id}/source-freshness', 'get'>;
 
 export default function CompanyPage() {
   const { workspaceId, companyId } = useParams<{ workspaceId: string; companyId: string }>();
@@ -23,17 +24,20 @@ export default function CompanyPage() {
   const evidence = useApi<Evidence>(`${base}/evidence?limit=100`, workspaceId);
   const people = useApi<People>(`${base}/people`, workspaceId);
   const orgMap = useApi<OrgMapV2>(`${base}/org-map`, workspaceId);
+  const freshness = useApi<Freshness>(`${base}/source-freshness`, workspaceId);
 
   const { reload: reloadCompany } = company;
   const { reload: reloadEvidence } = evidence;
   const { reload: reloadPeople } = people;
   const { reload: reloadMap } = orgMap;
+  const { reload: reloadFreshness } = freshness;
   const refresh = useCallback(() => {
     reloadCompany();
     reloadEvidence();
     reloadPeople();
     reloadMap();
-  }, [reloadCompany, reloadEvidence, reloadPeople, reloadMap]);
+    reloadFreshness();
+  }, [reloadCompany, reloadEvidence, reloadPeople, reloadMap, reloadFreshness]);
 
   if (company.loading && !company.data) return <Loading />;
   if (company.error) return <ErrorNotice error={company.error} />;
@@ -64,6 +68,45 @@ export default function CompanyPage() {
           Profile fields come from cited evidence below. {company.data.counts.evidence} evidence
           records · {company.data.counts.people} candidate people.
         </p>
+      </section>
+
+      <section aria-labelledby="freshness" className="card">
+        <h2 id="freshness">Source freshness</h2>
+        <p className="muted small">
+          A source is stale when it has never succeeded for this company, or the last success is
+          older than its freshness window.
+        </p>
+        <ErrorNotice error={freshness.error} />
+        {freshness.data ? (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Source</th>
+                <th scope="col">Last success</th>
+                <th scope="col">Window</th>
+                <th scope="col">State</th>
+              </tr>
+            </thead>
+            <tbody>
+              {freshness.data.data.map((f) => (
+                <tr key={f.source_key}>
+                  <td>{f.provider_name}</td>
+                  <td>
+                    {f.last_success_at ? (
+                      formatDate(f.last_success_at)
+                    ) : (
+                      <span className="muted">Never</span>
+                    )}
+                  </td>
+                  <td>{f.freshness_ttl_hours}h</td>
+                  <td>
+                    <StatusBadge status={f.stale ? 'stale' : 'fresh'} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
       </section>
 
       <ResearchPanel

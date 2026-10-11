@@ -32,6 +32,8 @@ export class ApiError extends Error {
 interface RequestOptions {
   method?: 'GET' | 'POST' | 'PATCH';
   body?: unknown;
+  /** Sent verbatim instead of a JSON `body`, e.g. a CSV upload. */
+  rawBody?: { contentType: string; text: string };
   workspaceId?: string;
   headers?: Record<string, string>;
 }
@@ -44,15 +46,22 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
   const method = opts.method ?? 'GET';
   const headers: Record<string, string> = { accept: 'application/json', ...opts.headers };
   if (method !== 'GET') headers['x-mapforce-csrf'] = '1';
-  if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.workspaceId) headers['x-workspace-id'] = opts.workspaceId;
+  let body: string | undefined;
+  if (opts.rawBody) {
+    headers['content-type'] = opts.rawBody.contentType;
+    body = opts.rawBody.text;
+  } else if (opts.body !== undefined) {
+    headers['content-type'] = 'application/json';
+    body = JSON.stringify(opts.body);
+  }
 
   const res = await fetch(path, {
     method,
     headers,
     credentials: 'same-origin',
     cache: 'no-store',
-    ...(opts.body !== undefined ? { body: JSON.stringify(opts.body) } : {}),
+    ...(body !== undefined ? { body } : {}),
   });
 
   if (res.status === 204) return null as T;
