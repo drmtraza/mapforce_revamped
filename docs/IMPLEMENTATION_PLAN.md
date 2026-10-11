@@ -128,6 +128,8 @@ Recommended option is listed first. Phase 1 can start once D1–D8 and D11 are a
 | D10 | Target markets: **United States, United Kingdom, European Union**. Implications: GDPR / UK GDPR + PECR / CAN-SPAM and US state privacy laws (e.g. CCPA/CPRA) drive purpose limitation, legitimate-interest assessment, suppression and deletion; candidate registries for Phase 2/3 evaluation include UK Companies House API, SEC EDGAR, OpenCorporates (licensed), EU national registries; procurement candidates include SAM.gov, UK Contracts Finder / Find a Tender, EU TED. All subject to terms review before enabling. |
 | D11 | Phase branches pushed with a PR into `main`; Phase 1 starts from `phase-0/plan` without waiting for merge. |
 | D9, D12, D13 | Open; required by Phases 4, 3 and 6 respectively. |
+| D14 (Phase 2) | Permitted search API: **Brave Search API**. Registered as `brave_search`, globally disabled and requiring `BRAVE_SEARCH_API_KEY` on the research worker; results become reviewable discovery candidates and are never auto-created as companies. Owner must review the provider terms before enabling. |
+| D15 (Phase 2) | Public company-site crawler (`company_site`): **off by default per workspace; workspace owners/admins opt in** via source settings (audited). Bounded by robots.txt, SSRF guard, per-domain delay, page/byte budgets and a tenant daily page budget. |
 
 ---
 

@@ -60,9 +60,10 @@ async function loadJob(trx: Tx, tenantId: string, id: string) {
     ])
     .where('tenant_id', '=', tenantId)
     .where('id', '=', id)
+    .where('job_type', '=', 'company_research')
     .executeTakeFirst();
-  if (!job) throw notFound('Research job');
-  return job;
+  if (!job || !job.company_id) throw notFound('Research job');
+  return { ...job, company_id: job.company_id };
 }
 
 function isUniqueViolation(err: unknown): boolean {

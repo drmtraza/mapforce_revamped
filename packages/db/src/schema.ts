@@ -116,6 +116,73 @@ export interface SourceRegistryTable {
   is_mock: boolean;
   config: Json;
   created_at: GeneratedTimestamp;
+  description: Generated<string>;
+  operations: Generated<string[]>;
+  requires_credentials: Generated<boolean>;
+  default_tenant_enabled: Generated<boolean>;
+  freshness_ttl_hours: Generated<number>;
+  retention_days: Generated<number>;
+  max_requests_per_job: Generated<number>;
+}
+
+export interface TenantSourceSettingsTable {
+  tenant_id: string;
+  source_key: string;
+  enabled: boolean;
+  updated_by: string;
+  updated_at: GeneratedTimestamp;
+}
+
+export type JobType = 'company_research' | 'company_discovery';
+
+export interface DiscoveryCandidatesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  job_id: string;
+  source_key: string;
+  domain: string;
+  name: string;
+  country_code: string | null;
+  description: string | null;
+  claim_type: 'source_fact' | 'provider_fact';
+  confidence: Numeric;
+  evidence_record_id: string;
+  status: Generated<'new' | 'accepted' | 'dismissed'>;
+  company_id: string | null;
+  decided_by: string | null;
+  decided_at: Timestamp | null;
+  created_at: GeneratedTimestamp;
+}
+
+export type ImportOutcome = 'created' | 'existing' | 'duplicate_in_file' | 'invalid';
+
+export interface ImportBatchesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  kind: 'companies';
+  idempotency_key: string;
+  filename: string | null;
+  content_hash: string;
+  row_count: number;
+  created_count: Generated<number>;
+  existing_count: Generated<number>;
+  duplicate_count: Generated<number>;
+  invalid_count: Generated<number>;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface ImportRowsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  batch_id: string;
+  row_number: number;
+  raw: Json;
+  normalized_domain: string | null;
+  outcome: ImportOutcome;
+  error_code: string | null;
+  error_message: string | null;
+  company_id: string | null;
 }
 
 export interface CompaniesTable {
@@ -158,8 +225,9 @@ export interface CompanyIdentifiersTable {
 export interface WorkflowJobsTable {
   id: Generated<string>;
   tenant_id: string;
-  company_id: string;
-  job_type: 'company_research';
+  company_id: string | null;
+  job_type: JobType;
+  query: ColumnType<unknown, string | null | undefined, string | null>;
   status: Generated<JobStatus>;
   idempotency_key: string;
   input: Json;
@@ -336,6 +404,10 @@ export interface Database {
   outbox_events: OutboxEventsTable;
   icp_profiles: IcpProfilesTable;
   source_registry: SourceRegistryTable;
+  tenant_source_settings: TenantSourceSettingsTable;
+  discovery_candidates: DiscoveryCandidatesTable;
+  import_batches: ImportBatchesTable;
+  import_rows: ImportRowsTable;
   companies: CompaniesTable;
   company_aliases: CompanyAliasesTable;
   company_identifiers: CompanyIdentifiersTable;

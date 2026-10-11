@@ -155,6 +155,67 @@ describe('tenant isolation (database layer)', () => {
     ).rejects.toThrow(/permission denied/);
   });
 
+  it('rejects source settings written for another tenant', async () => {
+    await expect(
+      withContext(db, { tenantId: tenantB, userId: userB }, (trx) =>
+        trx
+          .insertInto('tenant_source_settings')
+          .values({
+            tenant_id: tenantA,
+            source_key: 'company_site',
+            enabled: true,
+            updated_by: userB,
+          })
+          .execute(),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
+
+  it('requires a company for research jobs but not for discovery jobs', async () => {
+    const base = {
+      tenant_id: tenantA,
+      input: '{}',
+      requested_by: userA,
+    };
+    await expect(
+      withContext(db, { tenantId: tenantA, userId: userA }, (trx) =>
+        trx
+          .insertInto('workflow_jobs')
+          .values({
+            ...base,
+            job_type: 'company_research',
+            company_id: null,
+            idempotency_key: 'r-null',
+            temporal_workflow_id: `wf-${randomUUID()}`,
+          })
+          .execute(),
+      ),
+    ).rejects.toThrow(/check constraint/);
+    await withContext(db, { tenantId: tenantA, userId: userA }, (trx) =>
+      trx
+        .insertInto('workflow_jobs')
+        .values({
+          ...base,
+          job_type: 'company_discovery',
+          company_id: null,
+          idempotency_key: 'd-null',
+          temporal_workflow_id: `wf-${randomUUID()}`,
+        })
+        .execute(),
+    );
+  });
+
+  it('lets the runtime role touch only delivery columns of outbox events', async () => {
+    await expect(
+      withContext(db, { tenantId: tenantA, userId: userA }, (trx) =>
+        trx.updateTable('outbox_events').set({ payload: '{}' }).execute(),
+      ),
+    ).rejects.toThrow(/permission denied/);
+    await withContext(db, { tenantId: tenantA, userId: userA }, (trx) =>
+      trx.updateTable('outbox_events').set({ dead_lettered_at: null, attempts: 0 }).execute(),
+    );
+  });
+
   it('rejects storing a model inference as a verified relationship', async () => {
     await expect(
       withContext(db, { tenantId: tenantA, userId: userA }, (trx) =>
