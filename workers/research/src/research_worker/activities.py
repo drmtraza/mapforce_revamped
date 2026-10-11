@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 from .adapters import AdapterFailure, SourceAdapter, build_registry
+from .adapters.base import set_progress_reporter
 from .models import AdapterInvocation, AdapterRequest
 
 log = logging.getLogger(__name__)
@@ -58,7 +60,9 @@ class ResearchActivities:
                 "correlation_id": request["correlation_id"],
             },
         )
+        set_progress_reporter(_heartbeat)
         try:
+            _heartbeat({"phase": "start"})
             async with asyncio.timeout(ADAPTER_TIMEOUT_SECONDS):
                 result = await adapter.run(bounded)
         except AdapterFailure as err:
@@ -73,4 +77,11 @@ class ResearchActivities:
             raise ApplicationError(
                 "Adapter exceeded its time budget", type="SOURCE_TIMEOUT"
             ) from err
+        finally:
+            set_progress_reporter(None)
         return {"attempt": info.attempt, "result": result}
+
+
+def _heartbeat(detail: dict[str, Any]) -> None:
+    if activity.in_activity():
+        activity.heartbeat(detail)

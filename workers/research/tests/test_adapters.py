@@ -11,7 +11,12 @@ from temporalio.testing import ActivityEnvironment
 
 from research_worker.activities import ResearchActivities
 from research_worker.adapters import AdapterFailure, build_registry
-from research_worker.adapters.mock import MockPeopleAdapter, MockRegistryAdapter, MockWebAdapter
+from research_worker.adapters.mock import (
+    MockPeopleAdapter,
+    MockRegistryAdapter,
+    MockSearchAdapter,
+    MockWebAdapter,
+)
 from research_worker.models import AdapterRequest, AdapterResult, Operation
 
 SCHEMA_PATH = Path(__file__).resolve().parents[3] / "contracts" / "adapter-result.v1.schema.json"
@@ -38,6 +43,8 @@ def assert_contract(result: AdapterResult) -> None:
     cited: list[str] = []
     for c in result["company_claims"]:
         cited += c["evidence_refs"]
+    for candidate in result.get("companies", []):
+        cited += candidate["evidence_refs"]
     for p in result["people"]:
         cited += p["evidence_refs"]
     for r in result["relationships"]:
@@ -151,6 +158,62 @@ async def test_activity_clamps_oversized_budgets() -> None:
     assert len(invocation["result"]["people"]) <= 200
 
 
-def test_mock_providers_can_be_disabled() -> None:
-    assert build_registry({"FEATURE_MOCK_PROVIDERS": "false"}) == {}
-    assert set(build_registry({})) == {"mock_web", "mock_people", "mock_registry"}
+def test_registry_flags() -> None:
+    off = {"FEATURE_MOCK_PROVIDERS": "false", "FEATURE_COMPANY_SITE_CRAWLER": "false"}
+    assert build_registry(off) == {}
+    assert set(build_registry({})) == {
+        "mock_web",
+        "mock_people",
+        "mock_registry",
+        "mock_search",
+        "company_site",
+    }
+    assert "brave_search" not in build_registry({}), "Brave stays unregistered without a key"
+    assert "brave_search" in build_registry({**off, "BRAVE_SEARCH_API_KEY": "placeholder"})
+
+
+def discovery(text: str, countries: list[str] | None = None) -> AdapterRequest:
+    return {
+        "source_key": "mock_search",
+        "operation": "discover_companies",
+        "query": {"text": text, "country_codes": countries or []},
+        "budget": {"max_records": 25, "max_evidence": 10},
+        "correlation_id": "test-correlation",
+    }
+
+
+async def test_mock_search_candidates_satisfy_contract_and_are_deterministic() -> None:
+    adapter = MockSearchAdapter()
+    first = await adapter.run(discovery("Freight logistics software", ["GB", "DE"]))
+    second = await adapter.run(discovery("freight   LOGISTICS software", ["GB", "DE"]))
+    assert_contract(first)
+    assert without_timestamps(first) == without_timestamps(second)
+    companies = first.get("companies", [])
+    assert len(companies) == 5
+    assert all(c["domain"].endswith(".example") for c in companies)
+    assert {c["country_code"] for c in companies} <= {"GB", "DE"}
+    assert all(c["claim_type"] == "provider_fact" for c in companies)
+
+
+async def test_mock_search_outage_and_missing_query() -> None:
+    with pytest.raises(AdapterFailure) as outage:
+        await MockSearchAdapter().run(discovery("outage test"))
+    assert outage.value.retryable is True
+    with pytest.raises(AdapterFailure) as missing:
+        await MockSearchAdapter().run(request("mock_search", "discover_companies"))
+    assert missing.value.code == "INVALID_REQUEST"
+
+
+async def test_base_adapter_rejects_unimplemented_interface_methods() -> None:
+    adapter = MockWebAdapter()
+    for method in (
+        adapter.discover_companies,
+        adapter.discover_people,
+        adapter.fetch_intent_signals,
+        adapter.enrich_contact,
+    ):
+        with pytest.raises(AdapterFailure) as exc:
+            await method(request("mock_web", "fetch_company_evidence"))
+        assert exc.value.code == "UNSUPPORTED_OPERATION"
+        assert exc.value.retryable is False
+    assert await adapter.health_check() is True

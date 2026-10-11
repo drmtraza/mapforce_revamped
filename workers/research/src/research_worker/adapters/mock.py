@@ -8,12 +8,16 @@ The same domain always yields the same people, claims and content hashes.
 from __future__ import annotations
 
 import hashlib
+import json
+import re
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import quote_plus
 
 from ..models import (
     AdapterRequest,
     AdapterResult,
+    CompanyCandidate,
     CompanyClaim,
     Evidence,
     Operation,
@@ -21,7 +25,7 @@ from ..models import (
     Relationship,
     empty_result,
 )
-from .base import AdapterFailure
+from .base import AdapterFailure, BaseAdapter, require_company, require_query
 
 FIRST_NAMES = ("Avery", "Jordan", "Riley", "Morgan", "Casey", "Quinn", "Taylor", "Rowan")
 LAST_NAMES = ("Example", "Sample", "Placeholder", "Testcase", "Fixture", "Mockridge")
@@ -72,16 +76,13 @@ def _company_name(domain: str) -> str:
     return f"{label.title()} Example Ltd"
 
 
-class MockWebAdapter:
+class MockWebAdapter(BaseAdapter):
     source_key = "mock_web"
     provider = PROVIDER
     operations: frozenset[Operation] = frozenset({"fetch_company_evidence"})
 
-    async def health_check(self) -> bool:
-        return True
-
-    async def run(self, request: AdapterRequest) -> AdapterResult:
-        domain = request["company"]["domain"]
+    async def fetch_company_evidence(self, request: AdapterRequest) -> AdapterResult:
+        domain = require_company(request)["domain"]
         seed = _seed(domain)
         name = _company_name(domain)
         industry = INDUSTRIES[seed % len(INDUSTRIES)]
@@ -126,16 +127,13 @@ class MockWebAdapter:
         return result
 
 
-class MockPeopleAdapter:
+class MockPeopleAdapter(BaseAdapter):
     source_key = "mock_people"
     provider = PROVIDER
     operations: frozenset[Operation] = frozenset({"discover_people"})
 
-    async def health_check(self) -> bool:
-        return True
-
-    async def run(self, request: AdapterRequest) -> AdapterResult:
-        domain = request["company"]["domain"]
+    async def discover_people(self, request: AdapterRequest) -> AdapterResult:
+        domain = require_company(request)["domain"]
         seed = _seed(domain)
         count = min(3 + seed % 2, request["budget"]["max_records"])
         names = [
@@ -203,18 +201,15 @@ class MockPeopleAdapter:
         return result
 
 
-class MockRegistryAdapter:
+class MockRegistryAdapter(BaseAdapter):
     """Simulates a public registry. Domains containing 'outage' model a provider outage."""
 
     source_key = "mock_registry"
     provider = PROVIDER
     operations: frozenset[Operation] = frozenset({"fetch_registry_record"})
 
-    async def health_check(self) -> bool:
-        return True
-
-    async def run(self, request: AdapterRequest) -> AdapterResult:
-        domain = request["company"]["domain"]
+    async def fetch_registry_record(self, request: AdapterRequest) -> AdapterResult:
+        domain = require_company(request)["domain"]
         if "outage" in domain:
             raise AdapterFailure("SOURCE_UNAVAILABLE", "Mock registry returned 503", retryable=True)
         number = f"{_seed(domain) % 100_000_000:08d}"
@@ -234,4 +229,64 @@ class MockRegistryAdapter:
                 "evidence_refs": ["ev-registry"],
             }
         ]
+        return result
+
+
+SEARCH_SUFFIXES = ("works", "labs", "group", "systems", "partners", "dynamics", "hub", "co")
+
+
+class MockSearchAdapter(BaseAdapter):
+    """Synthetic company search. Queries containing 'outage' model a provider outage."""
+
+    source_key = "mock_search"
+    provider = PROVIDER
+    operations: frozenset[Operation] = frozenset({"discover_companies"})
+
+    async def discover_companies(self, request: AdapterRequest) -> AdapterResult:
+        query = require_query(request)
+        text = " ".join(query["text"].lower().split())
+        if "outage" in text:
+            raise AdapterFailure("SOURCE_UNAVAILABLE", "Mock search returned 503", retryable=True)
+        words = re.findall(r"[a-z0-9]+", text)[:3] or ["company"]
+        stem = "-".join(words)[:40].strip("-")
+        countries = query["country_codes"] or list(COUNTRIES)
+        seed = _seed(text)
+        count = min(5, request["budget"]["max_records"])
+
+        candidates: list[CompanyCandidate] = []
+        listing: list[dict[str, str]] = []
+        for i in range(count):
+            suffix = SEARCH_SUFFIXES[(seed + i) % len(SEARCH_SUFFIXES)]
+            domain = f"{stem}-{suffix}.example"
+            name = f"{stem.replace('-', ' ').title()} {suffix.title()} Example"
+            description = f"{name} serves {text} customers (synthetic search result)."
+            listing.append({"name": name, "url": f"https://{domain}/", "snippet": description})
+            candidates.append(
+                {
+                    "ref": f"c{i}",
+                    "name": name,
+                    "domain": domain,
+                    "country_code": countries[(seed + i) % len(countries)],
+                    "description": description,
+                    "claim_type": "provider_fact",
+                    "confidence": 0.5,
+                    "evidence_refs": ["ev-search"],
+                }
+            )
+        body = json.dumps(listing, sort_keys=True)
+        evidence: Evidence = {
+            "ref": "ev-search",
+            "source_url": f"https://search.mock.example/?q={quote_plus(text)}",
+            "fetched_at": _now(),
+            "published_at": None,
+            "content_type": "application/json",
+            "content_hash": _hash(body),
+            "excerpt": "; ".join(item["name"] for item in listing)[:2000],
+            "normalized_content": {"query": text, "results": listing},
+            "license_metadata": dict(LICENSE),
+        }
+        result = empty_result(self.source_key, self.provider, "discover_companies")
+        result["usage"] = {"request_count": 1, "units": 1, "unit_type": "queries"}
+        result["evidence"] = [evidence]
+        result["companies"] = candidates
         return result

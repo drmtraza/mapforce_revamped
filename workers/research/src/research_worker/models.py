@@ -2,15 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal, TypedDict
+from typing import Any, Literal, NotRequired, TypedDict
 
-Operation = Literal["fetch_company_evidence", "discover_people", "fetch_registry_record"]
+Operation = Literal[
+    "fetch_company_evidence", "discover_people", "fetch_registry_record", "discover_companies"
+]
 SourcedClaimType = Literal["source_fact", "provider_fact"]
 
 
 class CompanyRef(TypedDict):
     domain: str
     name: str
+
+
+class DiscoveryQuery(TypedDict):
+    text: str
+    country_codes: list[str]
 
 
 class Budget(TypedDict):
@@ -21,7 +28,8 @@ class Budget(TypedDict):
 class AdapterRequest(TypedDict):
     source_key: str
     operation: Operation
-    company: CompanyRef
+    company: NotRequired[CompanyRef]
+    query: NotRequired[DiscoveryQuery]
     budget: Budget
     correlation_id: str
 
@@ -81,6 +89,17 @@ class Relationship(TypedDict):
     evidence_refs: list[str]
 
 
+class CompanyCandidate(TypedDict):
+    ref: str
+    name: str
+    domain: str
+    country_code: str | None
+    description: str | None
+    claim_type: SourcedClaimType
+    confidence: float
+    evidence_refs: list[str]
+
+
 class AdapterResult(TypedDict):
     schema_version: Literal[1]
     source_key: str
@@ -91,6 +110,7 @@ class AdapterResult(TypedDict):
     usage: Usage
     evidence: list[Evidence]
     company_claims: list[CompanyClaim]
+    companies: NotRequired[list[CompanyCandidate]]
     people: list[Person]
     relationships: list[Relationship]
 
