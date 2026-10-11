@@ -69,6 +69,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - Document D13 hosting recommendation and staging deploy checklist (no cloud credentials required).
 - D12 licensed contacts remain disabled until procurement/terms approval.
 
+## Phase 9 — Deploy packaging
+- Wire API / worker / web / migrate into Compose for a packaging dry-run.
+- Image healthchecks and post-deploy smoke script (readyz, metrics/OpenAPI gates, synthetic probe).
+- CI validates merged Compose config; existing image build/scan remains.
+- Still cloud-agnostic; D13 vendor and D12 remain owner decisions.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.

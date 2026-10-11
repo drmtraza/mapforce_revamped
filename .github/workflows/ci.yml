@@ -122,6 +122,15 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
 
+  compose-packaging:
+    name: Compose app packaging config
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Validate infra + app compose files
+        run: docker compose -f infra/compose/docker-compose.yml -f infra/compose/docker-compose.app.yml config --quiet
+
   e2e:
     name: End-to-end journey (compose stack + Playwright + axe)
     runs-on: ubuntu-24.04

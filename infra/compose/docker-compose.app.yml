@@ -1,0 +1,128 @@
+# Application services on top of infra/compose/docker-compose.yml.
+# Usage (from repo root):
+#   docker compose -f infra/compose/docker-compose.yml -f infra/compose/docker-compose.app.yml up -d --build --wait
+#   node infra/deploy/smoke.mjs
+#
+# This is a packaging dry-run. It is not a managed-cloud deploy and does not prove capacity.
+# Browser sign-in may still need host-mapped IdP URLs; smoke checks do not require login.
+
+name: mapforce
+
+services:
+  migrate:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    command: ['node', 'packages/db/src/cli.ts']
+    environment:
+      DATABASE_OWNER_URL: postgres://mapforce_owner:${POSTGRES_OWNER_PASSWORD:-local-owner-pw}@postgres:5432/mapforce
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - '${API_HOST_PORT:-4000}:4000'
+    environment: &app_env
+      NODE_ENV: production
+      LOG_LEVEL: info
+      API_HOST: 0.0.0.0
+      API_PORT: 4000
+      PUBLIC_WEB_ORIGIN: http://localhost:${WEB_HOST_PORT:-3000}
+      DATABASE_APP_URL: postgres://mapforce_app:${APP_DB_PASSWORD:-local-app-pw}@postgres:5432/mapforce
+      DATABASE_RELAY_URL: postgres://mapforce_relay:${RELAY_DB_PASSWORD:-local-relay-pw}@postgres:5432/mapforce
+      DATABASE_POOL_MAX: 10
+      REDIS_URL: redis://redis:6379
+      SESSION_COOKIE_SECRET: ${SESSION_COOKIE_SECRET:-replace-with-at-least-32-random-characters}
+      SESSION_TTL_HOURS: 8
+      COOKIE_SECURE: 'true'
+      OIDC_ISSUER_URL: http://localhost:${KEYCLOAK_HOST_PORT:-8080}/realms/mapforce
+      OIDC_CLIENT_ID: mapforce-web
+      OIDC_REDIRECT_URI: http://localhost:${WEB_HOST_PORT:-3000}/api/v1/auth/callback
+      OIDC_ALLOW_INSECURE_HTTP: 'false'
+      S3_ENDPOINT: http://objectstore:9000
+      S3_PUBLIC_ENDPOINT: http://localhost:${S3_HOST_PORT:-9000}
+      S3_REGION: us-east-1
+      S3_BUCKET: mapforce-evidence
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-local-s3-key}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-local-s3-secret}
+      S3_FORCE_PATH_STYLE: 'true'
+      EVIDENCE_URL_TTL_SECONDS: 60
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      TEMPORAL_TASK_QUEUE: research-control
+      RESEARCH_PYTHON_TASK_QUEUE: research-python
+      CONTACT_FIELD_KEY: ${CONTACT_FIELD_KEY:-dev-contact-field-key-not-for-production!}
+      FEATURE_MOCK_PROVIDERS: 'true'
+      FEATURE_LICENSED_CONTACTS: 'false'
+      FEATURE_HERMES: 'false'
+      FEATURE_RESEARCH: 'true'
+      FEATURE_DISCOVERY: 'true'
+      FEATURE_ENRICH: 'true'
+      FEATURE_AI: 'true'
+      FEATURE_EXPORT: 'true'
+      DEFAULT_TENANT_PLAN: beta
+      MAX_BETA_TENANTS: 5
+      EXPOSE_OPENAPI: 'false'
+      METRICS_TOKEN: ${METRICS_TOKEN:-local-metrics-token-16}
+      SYNTHETIC_PROBE_TOKEN: ${SYNTHETIC_PROBE_TOKEN:-local-synthetic-token16}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+      objectstore:
+        condition: service_started
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:4000/readyz'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  api-worker:
+    build:
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+    command: ['node', 'apps/api/src/temporal/worker-main.ts']
+    environment:
+      <<: *app_env
+    depends_on:
+      api:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_ORIGIN: http://api:4000
+    ports:
+      - '${WEB_HOST_PORT:-3000}:3000'
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'node -e "fetch(''http://127.0.0.1:3000/login'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s

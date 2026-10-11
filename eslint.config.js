@@ -13,6 +13,7 @@ export default tseslint.config(
       'workers/**',
       'infra/load/**',
       'infra/synthetic/**',
+      'infra/deploy/**',
       '**/next-env.d.ts',
     ],
   },

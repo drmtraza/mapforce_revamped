@@ -27,7 +27,7 @@ Services to run (same images as local Compose where possible):
 4. `web` — Next.js UI
 5. Managed Postgres / Redis / object storage / Temporal / IdP
 
-Use `infra/compose/staging.env.example` for **local staging-like** API/web env gates against the existing Compose infra. It does not replace managed cloud services.
+Use `infra/compose/staging.env.example` for env gates, and `pnpm infra:app:up` + `pnpm deploy:smoke` for a **local packaging dry-run** (see `DEPLOY_PACKAGING.md`). That does not replace managed cloud services.
 
 ## Required staging env gates
 

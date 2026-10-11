@@ -27,4 +27,6 @@ COPY apps/api/src ./apps/api/src
 RUN rm -rf packages/db/test packages/contracts/test && chown -R node:node /repo/apps/api
 USER node
 EXPOSE 4000
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.API_PORT||4000)+'/readyz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 CMD ["node", "apps/api/src/server.ts"]
