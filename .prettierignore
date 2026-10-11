@@ -12,3 +12,4 @@ skills
 # Owner-supplied v1 contracts are kept byte-identical
 contracts/lead.schema.json
 contracts/org-map.schema.json
+contracts/openapi.v1.json
