@@ -1,0 +1,116 @@
+"""Wire types shared with the control plane (see contracts/adapter-result.v1.schema.json)."""
+
+from __future__ import annotations
+
+from typing import Any, Literal, TypedDict
+
+Operation = Literal["fetch_company_evidence", "discover_people", "fetch_registry_record"]
+SourcedClaimType = Literal["source_fact", "provider_fact"]
+
+
+class CompanyRef(TypedDict):
+    domain: str
+    name: str
+
+
+class Budget(TypedDict):
+    max_records: int
+    max_evidence: int
+
+
+class AdapterRequest(TypedDict):
+    source_key: str
+    operation: Operation
+    company: CompanyRef
+    budget: Budget
+    correlation_id: str
+
+
+class AdapterError(TypedDict):
+    code: str
+    message: str
+    retryable: bool
+
+
+class Usage(TypedDict):
+    request_count: int
+    units: float
+    unit_type: str
+
+
+class Evidence(TypedDict):
+    ref: str
+    source_url: str
+    fetched_at: str
+    published_at: str | None
+    content_type: str
+    content_hash: str
+    excerpt: str
+    normalized_content: dict[str, Any]
+    license_metadata: dict[str, Any]
+
+
+class CompanyClaim(TypedDict):
+    predicate: str
+    value: str
+    claim_type: SourcedClaimType
+    confidence: float
+    evidence_refs: list[str]
+
+
+class Person(TypedDict):
+    ref: str
+    full_name: str
+    title: str | None
+    department: str | None
+    seniority: str | None
+    public_profile_url: str | None
+    claim_type: SourcedClaimType
+    confidence: float
+    evidence_refs: list[str]
+
+
+class Relationship(TypedDict):
+    subject_ref: str
+    predicate: Literal["REPORTS_TO", "INFLUENCES", "DECIDES_FOR", "WORKS_WITH"]
+    object_ref: str
+    status: Literal["verified", "inferred"]
+    claim_type: Literal["source_fact", "provider_fact", "model_inference"]
+    confidence: float
+    rationale: str
+    evidence_refs: list[str]
+
+
+class AdapterResult(TypedDict):
+    schema_version: Literal[1]
+    source_key: str
+    provider: str
+    operation: Operation
+    status: Literal["succeeded", "failed"]
+    error: AdapterError | None
+    usage: Usage
+    evidence: list[Evidence]
+    company_claims: list[CompanyClaim]
+    people: list[Person]
+    relationships: list[Relationship]
+
+
+class AdapterInvocation(TypedDict):
+    attempt: int
+    result: AdapterResult
+
+
+def empty_result(source_key: str, provider: str, operation: Operation) -> AdapterResult:
+    return {
+        "schema_version": 1,
+        "source_key": source_key,
+        "provider": provider,
+        "operation": operation,
+        "status": "succeeded",
+        "error": None,
+        "usage": {"request_count": 0, "units": 0, "unit_type": "records"},
+        "evidence": [],
+        "company_claims": [],
+        "people": [],
+        "relationships": [],
+    }
