@@ -12,7 +12,7 @@ services:
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:-local-app-pw}
       RELAY_DB_PASSWORD: ${RELAY_DB_PASSWORD:-local-relay-pw}
     ports:
-      - '5432:5432'
+      - '${POSTGRES_HOST_PORT:-5432}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./postgres-init:/docker-entrypoint-initdb.d:ro
@@ -26,7 +26,7 @@ services:
     image: redis:7.4.11-alpine
     command: ['redis-server', '--save', '', '--appendonly', 'no']
     ports:
-      - '6379:6379'
+      - '${REDIS_HOST_PORT:-6379}:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', 'ping']
       interval: 3s
@@ -44,13 +44,14 @@ services:
         '--ui-ip',
         '0.0.0.0',
         '--db-filename',
-        '/data/temporal.db',
+        '/home/temporal/temporal.db',
       ]
     ports:
-      - '7233:7233'
-      - '8233:8233'
+      - '${TEMPORAL_HOST_PORT:-7233}:7233'
+      - '${TEMPORAL_UI_HOST_PORT:-8233}:8233'
     volumes:
-      - temporaldata:/data
+      # The image runs as uid 1000; a fresh named volume inherits this directory's ownership.
+      - temporaldata:/home/temporal
     healthcheck:
       test: ['CMD', 'temporal', 'operator', 'cluster', 'health', '--address', '127.0.0.1:7233']
       interval: 5s
@@ -64,8 +65,8 @@ services:
       RUSTFS_SECRET_KEY: ${S3_SECRET_ACCESS_KEY:-local-s3-secret}
       RUSTFS_CONSOLE_ENABLE: 'true'
     ports:
-      - '9000:9000'
-      - '9001:9001'
+      - '${S3_HOST_PORT:-9000}:9000'
+      - '${S3_CONSOLE_HOST_PORT:-9001}:9001'
     volumes:
       - objectdata:/data
 
@@ -78,7 +79,7 @@ services:
       KC_HEALTH_ENABLED: 'true'
       KC_HOSTNAME: http://localhost:8080
     ports:
-      - '8080:8080'
+      - '${KEYCLOAK_HOST_PORT:-8080}:8080'
     volumes:
       - ./keycloak:/opt/keycloak/data/import:ro
     healthcheck:
