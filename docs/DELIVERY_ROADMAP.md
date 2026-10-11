@@ -75,6 +75,11 @@ Exit criteria: published test report documents supported workload and remaining 
 - CI validates merged Compose config; existing image build/scan remains.
 - Still cloud-agnostic; D13 vendor and D12 remain owner decisions.
 
+## Phase 10 — Release smoke and registry
+- CI job runs packaging smoke against a gated API on Compose infra.
+- Publish immutable images to GHCR on `main` / version tags (not a cloud deploy).
+- D12 and D13 vendor choice remain owner decisions.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.

@@ -131,6 +131,54 @@ jobs:
       - name: Validate infra + app compose files
         run: docker compose -f infra/compose/docker-compose.yml -f infra/compose/docker-compose.app.yml config --quiet
 
+  packaging-smoke:
+    name: Packaging smoke (gated API)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Staging-like env gates
+        run: |
+          cp .env.example .env
+          {
+            echo 'EXPOSE_OPENAPI=false'
+            echo 'METRICS_TOKEN=ci-metrics-token-16xx'
+            echo 'SYNTHETIC_PROBE_TOKEN=ci-synthetic-token16'
+          } >> .env
+      - run: pnpm infra:up
+        timeout-minutes: 15
+      - run: pnpm db:migrate
+      - name: Start API with packaging gates
+        run: |
+          set -a
+          # shellcheck disable=SC1091
+          . ./.env
+          set +a
+          (cd apps/api && node --env-file=../../.env src/server.ts > /tmp/api-smoke.log 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:4000/readyz && exit 0
+            sleep 2
+          done
+          cat /tmp/api-smoke.log
+          exit 1
+      - name: Run deploy smoke
+        env:
+          BASE_URL: http://localhost:4000
+          METRICS_TOKEN: ci-metrics-token-16xx
+          SYNTHETIC_PROBE_TOKEN: ci-synthetic-token16
+        run: pnpm deploy:smoke
+      - name: API logs
+        if: failure()
+        run: |
+          cat /tmp/api-smoke.log || true
+          docker compose -f infra/compose/docker-compose.yml logs --no-color --tail 200 || true
+
   e2e:
     name: End-to-end journey (compose stack + Playwright + axe)
     runs-on: ubuntu-24.04

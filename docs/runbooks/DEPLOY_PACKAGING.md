@@ -39,6 +39,24 @@ Defaults in `infra/compose/docker-compose.app.yml` use production-like gates (`E
 5. `/synthetic/probe` ok with token  
 6. optional `WEB_BASE_URL/login` 200  
 
+## CI packaging smoke
+
+Workflow job `packaging-smoke` (in `.github/workflows/ci.yml`) brings up Compose infra, migrates, starts the API with `EXPOSE_OPENAPI=false` plus scrape tokens, and runs `pnpm deploy:smoke`. That proves the smoke contract on every phase branch without a cloud account.
+
+## GHCR image publish
+
+Workflow `.github/workflows/release-images.yml` pushes `api`, `web`, and `research-worker` to GitHub Container Registry on `main`, `v*` tags, and `workflow_dispatch`:
+
+`ghcr.io/<owner>/<repo>/mapforce-<name>:<git-sha>` (and `:latest` on default branch).
+
+Pull example (after `main` merge):
+
+```bash
+docker pull ghcr.io/<owner>/<repo>/mapforce-api:sha-<full-sha>
+```
+
+Packages may be private to the GitHub org/user; grant `read:packages` as needed. This is **not** a deploy to AWS/GCP/Azure.
+
 ## Cloud next step (after D13 vendor)
 
-Push the same image tags to the vendor registry; run `migrate` as a one-shot job; roll api → workers → web; run `deploy:smoke` against the staging URL. See `STAGING_DEPLOY.md` and `docs/adr/D13_HOSTING_RECOMMENDATION.md`.
+Pull the GHCR tags (or mirror them); run `migrate` as a one-shot job; roll api → workers → web; run `deploy:smoke` against the staging URL. See `STAGING_DEPLOY.md` and `docs/adr/D13_HOSTING_RECOMMENDATION.md`.

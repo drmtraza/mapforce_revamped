@@ -187,6 +187,7 @@ Cross-cutting from Phase 1: tenant context propagation, correlation IDs, error c
 | 7 | `phase-7/controlled-rollout` | Beta tenants, synthetic monitoring, quota ramp | Per roadmap |
 | 8 | `phase-8/review-refactor` | PRD/rules review, isolation hardening, staging/D13 blueprint | Highest-risk gaps fixed; remaining limits documented |
 | 9 | `phase-9/deploy-packaging` | Compose app stack, smoke script, image healthchecks | Packaging dry-run documented; no vendor lock-in |
+| 10 | `phase-10/release-smoke` | CI packaging smoke + GHCR image publish | Smoke contract green in CI; images pushable without D13 |
 
 Each phase is delivered as small commits on its branch; each branch is pushed and a PR opened against `main`. A phase branch is created from `main` after the previous phase PR is merged.
 
@@ -323,4 +324,4 @@ Phases 2–7: acceptance criteria are the roadmap exit criteria (§6) plus PRD �
 
 Owner reviews §3 and §4. On approval of D1–D8 and D11, implementation of Phase 1 begins on `phase-1/foundation-vertical-slice` in small commits, each followed by format/lint/typecheck/test runs with results reported verbatim.
 
-**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md`. Phase 2 implemented on `phase-2/discovery-evidence` — see `PHASE_2_REPORT.md`. Phase 3 implemented on `phase-3/people-enrichment-signals` — see `PHASE_3_REPORT.md`. Phase 4 implemented on `phase-4/ai-orgmap` — see `PHASE_4_REPORT.md`. Phase 5 implemented on `phase-5/bd-workspace` — see `PHASE_5_REPORT.md`. Phase 6 implemented on `phase-6/hardening-scale` — see `PHASE_6_REPORT.md`. Phase 7 implemented on `phase-7/controlled-rollout` — see `PHASE_7_REPORT.md`. Phase 8 implemented on `phase-8/review-refactor` — see `PHASE_8_REPORT.md`. Phase 9 implemented on `phase-9/deploy-packaging` — see `PHASE_9_REPORT.md`. D12 remains open. D13 ADR still awaiting owner vendor choice. GA packaging is not a readiness claim.
+**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md`. Phase 2 implemented on `phase-2/discovery-evidence` — see `PHASE_2_REPORT.md`. Phase 3 implemented on `phase-3/people-enrichment-signals` — see `PHASE_3_REPORT.md`. Phase 4 implemented on `phase-4/ai-orgmap` — see `PHASE_4_REPORT.md`. Phase 5 implemented on `phase-5/bd-workspace` — see `PHASE_5_REPORT.md`. Phase 6 implemented on `phase-6/hardening-scale` — see `PHASE_6_REPORT.md`. Phase 7 implemented on `phase-7/controlled-rollout` — see `PHASE_7_REPORT.md`. Phase 8 implemented on `phase-8/review-refactor` — see `PHASE_8_REPORT.md`. Phase 9 implemented on `phase-9/deploy-packaging` — see `PHASE_9_REPORT.md`. Phase 10 implemented on `phase-10/release-smoke` — see `PHASE_10_REPORT.md`. D12 remains open. D13 ADR still awaiting owner vendor choice. GA packaging is not a readiness claim.
