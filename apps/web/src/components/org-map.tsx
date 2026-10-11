@@ -6,7 +6,16 @@ import { ClaimTypeBadge, StatusBadge } from './badges';
 import { Empty } from './feedback';
 
 const NODE_W = 180;
-const NODE_H = 56;
+const NODE_H = 72;
+
+const PERSONA_LABEL: Record<string, string> = {
+  economic_buyer: 'Economic buyer',
+  functional_champion: 'Champion',
+  technical_evaluator: 'Technical eval',
+  operational_user: 'Operator',
+  procurement: 'Procurement',
+  unknown: 'Persona unknown',
+};
 const GAP_X = 32;
 const GAP_Y = 72;
 const PAD = 16;
@@ -149,8 +158,11 @@ export function OrgMapView({ map, workspaceId }: { map: OrgMapV2; workspaceId: s
                 <text x="10" y="22" className="node-name">
                   {truncate(p.display_name ?? 'Unnamed', 24)}
                 </text>
-                <text x="10" y="42" className="node-title">
+                <text x="10" y="40" className="node-title">
                   {truncate(p.canonical_title ?? 'Title unknown', 28)}
+                </text>
+                <text x="10" y="58" className="node-persona">
+                  {truncate(PERSONA_LABEL[p.persona] ?? p.persona, 26)}
                 </text>
               </g>
             );

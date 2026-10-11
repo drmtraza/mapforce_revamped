@@ -11,7 +11,9 @@ export type EventType =
   | 'discovery.job.completed'
   | 'company.import.completed'
   | 'enrichment.person.requested'
-  | 'enrichment.job.completed';
+  | 'enrichment.job.completed'
+  | 'orgmap.inference.requested'
+  | 'orgmap.inference.completed';
 
 export interface OutboxInput {
   tenantId: string;

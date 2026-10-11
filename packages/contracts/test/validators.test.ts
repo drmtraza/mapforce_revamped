@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { validateAdapterResult, validateEventEnvelope, validateOrgMapV2 } from '../src/index.ts';
+import type { OrgMapV2 } from '../src/types.ts';
+import {
+  validateAdapterResult,
+  validateEventEnvelope,
+  validateOrgMapGrounding,
+  validateOrgMapV2,
+} from '../src/index.ts';
 import {
   validContactResult,
   validDiscoveryResult,
@@ -201,6 +207,64 @@ describe('validateOrgMapV2', () => {
       ],
     };
     expect(validateOrgMapV2(map).ok).toBe(false);
+  });
+
+  it('rejects fabricated people, emails and unverifiable model edges', () => {
+    const map = {
+      ...base,
+      people: [
+        {
+          person_id: 'ghost',
+          persona: 'economic_buyer',
+          confidence: 0.8,
+          evidence_ids: ['e1'],
+          outreach_angle: {
+            value: 'Email jane@acme.example about budget',
+            claim_type: 'model_inference',
+            confidence: 0.5,
+            evidence_ids: ['e1'],
+            rationale: 'invented',
+          },
+        },
+      ],
+      relationships: [
+        {
+          subject_person_id: 'p1',
+          predicate: 'REPORTS_TO',
+          object_person_id: 'p1',
+          status: 'inferred',
+          claim_type: 'model_inference',
+          confidence: 0.9,
+          evidence_ids: ['missing'],
+          rationale: 'because I said so',
+        },
+      ],
+    };
+    const out = validateOrgMapGrounding(map as OrgMapV2, {
+      companyId: 'c1',
+      personIds: ['p1'],
+      evidenceIds: ['e1'],
+    });
+    expect(out.ok).toBe(false);
+    if (!out.ok) {
+      expect(out.errors.join()).toMatch(/unknown person_id/);
+      expect(out.errors.join()).toMatch(/email address/);
+      expect(out.errors.join()).toMatch(/unknown evidence_id|self-relationship/);
+    }
+  });
+
+  it('accepts a grounded overlay', () => {
+    const map = {
+      ...base,
+      people: [{ person_id: 'p1', persona: 'procurement', confidence: 0.6, evidence_ids: ['e1'] }],
+    };
+    expect(
+      validateOrgMapGrounding(map as OrgMapV2, {
+        companyId: 'c1',
+        personIds: ['p1'],
+        evidenceIds: ['e1'],
+      }).ok,
+    ).toBe(true);
   });
 
   it('requires cited evidence on outreach angles', () => {

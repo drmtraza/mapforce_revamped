@@ -48,6 +48,9 @@
 - `GET /companies/{id}/people`
 - `GET /people/{id}`
 - `GET /companies/{id}/org-map`
+- `POST /companies/{id}/org-map-jobs`
+- `GET /org-map-jobs/{id}`
+- `GET /companies/{id}/outreach-drafts`
 - `POST /people/{id}/review` (confirm, reject, mark disputed)
 - `POST /relationships/{id}/review`
 

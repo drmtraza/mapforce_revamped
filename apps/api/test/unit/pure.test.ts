@@ -51,13 +51,20 @@ describe('rbac', () => {
   it('keeps auditors read-only', () => {
     expect(can('auditor', 'audit.read')).toBe(true);
     expect(can('auditor', 'company.read')).toBe(true);
-    for (const p of ['company.write', 'research.start', 'people.review', 'icp.write'] as const) {
+    for (const p of [
+      'company.write',
+      'research.start',
+      'people.review',
+      'orgmap.run',
+      'icp.write',
+    ] as const) {
       expect(can('auditor', p)).toBe(false);
     }
   });
-  it('lets representatives start research but not review people or read audit', () => {
+  it('lets representatives start research but not review people, run org-map or read audit', () => {
     expect(can('representative', 'research.start')).toBe(true);
     expect(can('representative', 'people.review')).toBe(false);
+    expect(can('representative', 'orgmap.run')).toBe(false);
     expect(can('representative', 'audit.read')).toBe(false);
   });
 });

@@ -133,7 +133,8 @@ export interface TenantSourceSettingsTable {
   updated_at: GeneratedTimestamp;
 }
 
-export type JobType = 'company_research' | 'company_discovery' | 'person_enrichment';
+export type JobType =
+  'company_research' | 'company_discovery' | 'person_enrichment' | 'company_orgmap';
 export type ContactStatus =
   | 'unverified'
   | 'provider_verified'
@@ -498,6 +499,50 @@ export interface SignalEvidenceTable {
   tenant_id: string;
 }
 
+export interface AiRunsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  workflow_job_id: string | null;
+  provider: 'mock' | 'hermes' | 'fallback';
+  prompt_version: string;
+  model: string;
+  status: 'succeeded' | 'quarantined' | 'failed';
+  validation_outcome: 'accepted' | 'rejected' | 'fallback';
+  token_count: Generated<number>;
+  duration_ms: Generated<number>;
+  evidence_ids: string[];
+  result: Json | null;
+  error_code: string | null;
+  error_summary: string | null;
+  created_at: GeneratedTimestamp;
+}
+
+export interface AiQuarantineTable {
+  id: Generated<string>;
+  tenant_id: string;
+  ai_run_id: string;
+  reason: string;
+  raw_excerpt: string;
+  errors: Json;
+  created_at: GeneratedTimestamp;
+}
+
+export interface OutreachDraftsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  person_id: string;
+  ai_run_id: string | null;
+  body: string;
+  claim_type: 'model_inference';
+  confidence: Numeric;
+  evidence_ids: string[];
+  rationale: string;
+  status: Generated<'draft' | 'approved' | 'rejected'>;
+  created_at: GeneratedTimestamp;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -533,4 +578,7 @@ export interface Database {
   consent_suppressions: ConsentSuppressionsTable;
   intent_signals: IntentSignalsTable;
   signal_evidence: SignalEvidenceTable;
+  ai_runs: AiRunsTable;
+  ai_quarantine: AiQuarantineTable;
+  outreach_drafts: OutreachDraftsTable;
 }

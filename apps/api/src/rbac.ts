@@ -12,6 +12,7 @@ export type Permission =
   | 'evidence.read'
   | 'people.read'
   | 'people.review'
+  | 'orgmap.run'
   | 'people.merge'
   | 'enrich.start'
   | 'suppression.read'
@@ -45,6 +46,7 @@ const MATRIX: Record<Permission, readonly MembershipRole[]> = {
   'evidence.read': ALL,
   'people.read': ALL,
   'people.review': ['owner', 'admin', 'manager', 'researcher'],
+  'orgmap.run': ['owner', 'admin', 'manager', 'researcher'],
   'people.merge': ['owner', 'admin', 'manager', 'researcher'],
   'enrich.start': ['owner', 'admin', 'manager', 'researcher'],
   'suppression.read': ALL,

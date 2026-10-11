@@ -17,6 +17,7 @@ Never copy real prospect/contact datasets into local fixtures or issue trackers.
 - Store evidence in private object storage with lifecycle and signed access URLs.
 - Run crawlers in isolated worker network with restricted egress; never mount application secrets into crawl containers.
 - Keep internal AI endpoint private; require authentication and request budgets.
+- Local AI defaults: `FEATURE_HERMES=false` (mock org-map). Set `FEATURE_HERMES` and `HERMES_BASE_URL` only after credentials exist. Bound spend with `TENANT_DAILY_AI_RUN_LIMIT`, `AI_MAX_TOKENS` and `AI_TIMEOUT_MS`.
 
 ## 3. Observability
 Metrics:

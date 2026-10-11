@@ -139,6 +139,56 @@ export function validateOrgMapV2(data: unknown): ValidationResult<OrgMapV2> {
   return run(validators.orgMapV2, data);
 }
 
+/**
+ * Grounds a v2 org map against the person and evidence IDs supplied to the model.
+ * Rejects fabricated people, uncited IDs, emails in outreach, and inferred-as-verified edges.
+ */
+export function validateOrgMapGrounding(
+  map: OrgMapV2,
+  allowed: { companyId: string; personIds: readonly string[]; evidenceIds: readonly string[] },
+): ValidationResult<OrgMapV2> {
+  const structural = validateOrgMapV2(map);
+  if (!structural.ok) return structural;
+  const errors: string[] = [];
+  if (map.company_id !== allowed.companyId) errors.push('/company_id does not match the request');
+  const people = new Set(allowed.personIds);
+  const evidence = new Set(allowed.evidenceIds);
+  const EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+  const seen = new Set<string>();
+  map.people.forEach((p, i) => {
+    if (seen.has(p.person_id)) errors.push(`/people/${i} duplicate person_id`);
+    seen.add(p.person_id);
+    if (!people.has(p.person_id)) errors.push(`/people/${i} unknown person_id`);
+    for (const id of p.evidence_ids) {
+      if (!evidence.has(id)) errors.push(`/people/${i} unknown evidence_id ${id}`);
+    }
+    const angle = p.outreach_angle;
+    if (angle) {
+      if (EMAIL.test(angle.value) || EMAIL.test(angle.rationale)) {
+        errors.push(`/people/${i}/outreach_angle must not contain an email address`);
+      }
+      for (const id of angle.evidence_ids) {
+        if (!evidence.has(id)) errors.push(`/people/${i}/outreach_angle unknown evidence_id ${id}`);
+      }
+    }
+  });
+  map.relationships.forEach((r, i) => {
+    if (!people.has(r.subject_person_id) || !people.has(r.object_person_id)) {
+      errors.push(`/relationships/${i} references a person not in the request`);
+    }
+    if (r.subject_person_id === r.object_person_id) {
+      errors.push(`/relationships/${i} self-relationship`);
+    }
+    if (r.claim_type === 'model_inference' && r.status === 'verified') {
+      errors.push(`/relationships/${i} model inference cannot be verified`);
+    }
+    for (const id of r.evidence_ids) {
+      if (!evidence.has(id)) errors.push(`/relationships/${i} unknown evidence_id ${id}`);
+    }
+  });
+  return errors.length ? { ok: false, errors } : { ok: true, value: map };
+}
+
 export function validateEventEnvelope(data: unknown): ValidationResult<EventEnvelope> {
   return run(validators.eventEnvelope, data);
 }

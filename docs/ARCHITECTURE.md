@@ -64,9 +64,9 @@ Careers       Procurement
 - Direct SMTP probing is not a default strategy: provider responses are often inconclusive, port 25 is frequently blocked, and aggressive probing can harm reputation. Use compliant email verification providers and explicit uncertainty states.
 
 ### AI reasoning
-- Python service using Hermes Agent where agentic tool use and persistent skills provide value; alternatively call a model through a provider abstraction.
-- LLM receives only normalized, minimized evidence. Tool execution is allowlisted and server-authorized.
-- Prefer deterministic rules for normalization, scoring and suppression; use LLM for ambiguous classification, synthesis and draft generation.
+- Organization mapping runs in the TypeScript control plane through a provider abstraction (`mock` default; Hermes HTTP adapter compiled in but disabled until flagged). Crawl workers do not receive database credentials or model keys.
+- The model receives only compact people, relationships, signals and fenced untrusted excerpts. Output is validated against `org-map.v2` and grounded against supplied IDs before persist; failures go to `ai_quarantine` and a deterministic fallback is stored instead.
+- Prefer deterministic rules for title taxonomy, scoring and suppression; use the model for persona classification, cautious relationship proposals and human-reviewed outreach drafts.
 - Run local inference only after comparing GPU utilization, ops overhead, latency, quality and cost against hosted models.
 
 ### Storage

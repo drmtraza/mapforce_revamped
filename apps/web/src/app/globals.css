@@ -426,6 +426,10 @@ legend {
   font-size: 12px;
   fill: var(--muted);
 }
+.node-persona {
+  font-size: 11px;
+  fill: var(--muted);
+}
 .edge {
   stroke-width: 2;
 }

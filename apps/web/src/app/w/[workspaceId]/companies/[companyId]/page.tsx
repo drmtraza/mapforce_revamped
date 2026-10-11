@@ -8,9 +8,11 @@ import { ClaimTypeBadge, ConfidenceBadge, StatusBadge } from '@/components/badge
 import { EvidenceList, formatDate } from '@/components/evidence-list';
 import { Empty, ErrorNotice, Loading } from '@/components/feedback';
 import { OrgMapView } from '@/components/org-map';
+import { OrgMapPanel, OutreachDrafts } from '@/components/org-map-panel';
 import { ResearchPanel } from '@/components/research-panel';
 import type { ApiResponse } from '@/lib/api';
-import { useApi } from '@/lib/use-api';
+import { allowed } from '@/lib/roles';
+import { useApi, useWorkspaceRole } from '@/lib/use-api';
 
 type Company = ApiResponse<'/api/v1/companies/{id}', 'get'>;
 type Evidence = ApiResponse<'/api/v1/companies/{id}/evidence', 'get'>;
@@ -27,6 +29,22 @@ export default function CompanyPage() {
   const orgMap = useApi<OrgMapV2>(`${base}/org-map`, workspaceId);
   const freshness = useApi<Freshness>(`${base}/source-freshness`, workspaceId);
   const signals = useApi<Signals>(`${base}/signals`, workspaceId);
+  const drafts = useApi<{
+    data: {
+      id: string;
+      person_id: string;
+      display_name: string;
+      body: string;
+      claim_type: 'model_inference';
+      confidence: number;
+      evidence_ids: string[];
+      rationale: string;
+      status: string;
+      created_at: string;
+    }[];
+    note: string;
+  }>(`${base}/outreach-drafts`, workspaceId);
+  const role = useWorkspaceRole(workspaceId);
 
   const { reload: reloadCompany } = company;
   const { reload: reloadEvidence } = evidence;
@@ -34,6 +52,7 @@ export default function CompanyPage() {
   const { reload: reloadMap } = orgMap;
   const { reload: reloadFreshness } = freshness;
   const { reload: reloadSignals } = signals;
+  const { reload: reloadDrafts } = drafts;
   const refresh = useCallback(() => {
     reloadCompany();
     reloadEvidence();
@@ -41,7 +60,16 @@ export default function CompanyPage() {
     reloadMap();
     reloadFreshness();
     reloadSignals();
-  }, [reloadCompany, reloadEvidence, reloadPeople, reloadMap, reloadFreshness, reloadSignals]);
+    reloadDrafts();
+  }, [
+    reloadCompany,
+    reloadEvidence,
+    reloadPeople,
+    reloadMap,
+    reloadFreshness,
+    reloadSignals,
+    reloadDrafts,
+  ]);
 
   if (company.loading && !company.data) return <Loading />;
   if (company.error) return <ErrorNotice error={company.error} />;
@@ -198,8 +226,16 @@ export default function CompanyPage() {
 
       <section aria-labelledby="org" className="card">
         <h2 id="org">Organization map</h2>
+        <OrgMapPanel
+          workspaceId={workspaceId}
+          companyId={companyId}
+          canRun={allowed(role, 'runOrgMap')}
+          onFinished={refresh}
+        />
         <ErrorNotice error={orgMap.error} />
         {orgMap.data ? <OrgMapView map={orgMap.data} workspaceId={workspaceId} /> : null}
+        <ErrorNotice error={drafts.error} />
+        <OutreachDrafts drafts={drafts.data} />
       </section>
 
       <section aria-labelledby="evidence" className="card">

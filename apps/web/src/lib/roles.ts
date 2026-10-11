@@ -11,6 +11,7 @@ const ROLES = {
   reviewPeople: ['owner', 'admin', 'manager', 'researcher'],
   mergePeople: ['owner', 'admin', 'manager', 'researcher'],
   startEnrich: ['owner', 'admin', 'manager', 'researcher'],
+  runOrgMap: ['owner', 'admin', 'manager', 'researcher'],
   writeSuppression: ['owner', 'admin', 'manager'],
 } as const satisfies Record<string, readonly WorkspaceRole[]>;
 

@@ -171,6 +171,25 @@ describe('tenant isolation (database layer)', () => {
     ).rejects.toThrow(/row-level security/);
   });
 
+  it('requires a company for organization-mapping jobs', async () => {
+    await expect(
+      withContext(db, { tenantId: tenantA, userId: userA }, (trx) =>
+        trx
+          .insertInto('workflow_jobs')
+          .values({
+            tenant_id: tenantA,
+            input: '{}',
+            requested_by: userA,
+            job_type: 'company_orgmap',
+            company_id: null,
+            idempotency_key: 'orgmap-null',
+            temporal_workflow_id: `wf-${randomUUID()}`,
+          })
+          .execute(),
+      ),
+    ).rejects.toThrow(/check constraint/);
+  });
+
   it('requires a company for research jobs but not for discovery jobs', async () => {
     const base = {
       tenant_id: tenantA,

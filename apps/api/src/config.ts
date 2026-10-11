@@ -52,6 +52,18 @@ const ConfigSchema = z
     TENANT_DAILY_RESEARCH_JOB_LIMIT: z.coerce.number().int().min(1).max(100_000).default(100),
     TENANT_DAILY_CRAWL_PAGE_LIMIT: z.coerce.number().int().min(0).max(1_000_000).default(200),
     TENANT_DAILY_ENRICH_LIMIT: z.coerce.number().int().min(0).max(100_000).default(50),
+    TENANT_DAILY_AI_RUN_LIMIT: z.coerce.number().int().min(0).max(100_000).default(20),
+    AI_MAX_TOKENS: z.coerce.number().int().min(256).max(100_000).default(4000),
+    AI_TIMEOUT_MS: z.coerce.number().int().min(500).max(120_000).default(15_000),
+    FEATURE_HERMES: bool,
+    HERMES_BASE_URL: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.url().optional(),
+    ),
+    HERMES_API_KEY: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.string().min(1).optional(),
+    ),
     CONTACT_FIELD_KEY: z.string().min(32, 'CONTACT_FIELD_KEY must be at least 32 characters'),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(100_000).default(300),
     FEATURE_MOCK_PROVIDERS: z

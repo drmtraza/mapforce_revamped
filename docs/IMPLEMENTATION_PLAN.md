@@ -127,7 +127,7 @@ Recommended option is listed first. Phase 1 can start once D1–D8 and D11 are a
 | D8 | Approved: `org-map.schema.json` v2 and `GET /evidence/{id}/content-url`. |
 | D10 | Target markets: **United States, United Kingdom, European Union**. Implications: GDPR / UK GDPR + PECR / CAN-SPAM and US state privacy laws (e.g. CCPA/CPRA) drive purpose limitation, legitimate-interest assessment, suppression and deletion; candidate registries for Phase 2/3 evaluation include UK Companies House API, SEC EDGAR, OpenCorporates (licensed), EU national registries; procurement candidates include SAM.gov, UK Contracts Finder / Find a Tender, EU TED. All subject to terms review before enabling. |
 | D11 | Phase branches pushed with a PR into `main`; Phase 1 starts from `phase-0/plan` without waiting for merge. |
-| D9, D12, D13 | Open; required by Phases 4, 3 and 6 respectively. |
+| D9 | **Decided in Phase 4:** model-provider abstraction in the TypeScript control plane (so crawl workers never hold DB credentials). Deterministic mock is the default. Hermes HTTP adapter is compiled in but globally disabled until `FEATURE_HERMES=true` and `HERMES_BASE_URL` are set. Failed or ungrounded model output is quarantined and replaced by the deterministic fallback. |
 | D14 (Phase 2) | Permitted search API: **Brave Search API**. Registered as `brave_search`, globally disabled and requiring `BRAVE_SEARCH_API_KEY` on the research worker; results become reviewable discovery candidates and are never auto-created as companies. Owner must review the provider terms before enabling. |
 | D15 (Phase 2) | Public company-site crawler (`company_site`): **off by default per workspace; workspace owners/admins opt in** via source settings (audited). Bounded by robots.txt, SSRF guard, per-domain delay, page/byte budgets and a tenant daily page budget. |
 
@@ -319,4 +319,4 @@ Phases 2–7: acceptance criteria are the roadmap exit criteria (§6) plus PRD �
 
 Owner reviews §3 and §4. On approval of D1–D8 and D11, implementation of Phase 1 begins on `phase-1/foundation-vertical-slice` in small commits, each followed by format/lint/typecheck/test runs with results reported verbatim.
 
-**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md`. Phase 2 implemented on `phase-2/discovery-evidence` — see `PHASE_2_REPORT.md`. Phase 3 implemented on `phase-3/people-enrichment-signals` — see `PHASE_3_REPORT.md`. Phase 4 starts only after owner review of that report.
+**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md`. Phase 2 implemented on `phase-2/discovery-evidence` — see `PHASE_2_REPORT.md`. Phase 3 implemented on `phase-3/people-enrichment-signals` — see `PHASE_3_REPORT.md`. Phase 4 implemented on `phase-4/ai-orgmap` — see `PHASE_4_REPORT.md`. Phase 5 starts only after owner review of that report.
