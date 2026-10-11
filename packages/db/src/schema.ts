@@ -655,6 +655,17 @@ export interface TenantBudgetsTable {
   updated_at: GeneratedTimestamp;
 }
 
+export interface WorkspaceControlsTable {
+  tenant_id: string;
+  research_enabled: Generated<boolean>;
+  discovery_enabled: Generated<boolean>;
+  enrich_enabled: Generated<boolean>;
+  ai_enabled: Generated<boolean>;
+  export_enabled: Generated<boolean>;
+  updated_by: string | null;
+  updated_at: GeneratedTimestamp;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -702,4 +713,5 @@ export interface Database {
   notes: NotesTable;
   export_batches: ExportBatchesTable;
   tenant_budgets: TenantBudgetsTable;
+  workspace_controls: WorkspaceControlsTable;
 }

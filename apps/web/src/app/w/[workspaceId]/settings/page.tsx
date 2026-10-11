@@ -259,6 +259,7 @@ export default function SettingsPage() {
       </section>
 
       <UsageBudget workspaceId={workspaceId} role={role} />
+      <OpsPanel workspaceId={workspaceId} role={role} />
     </>
   );
 }
@@ -346,6 +347,124 @@ function UsageBudget({
             Save budget override
           </button>
         </form>
+      ) : null}
+    </section>
+  );
+}
+
+function OpsPanel({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: ReturnType<typeof useWorkspaceRole>;
+}) {
+  const status = useApi<{
+    database: string;
+    redis: string;
+    pool: { total: number; idle: number; waiting: number } | null;
+    controls: {
+      research: boolean;
+      discovery: boolean;
+      enrich: boolean;
+      ai: boolean;
+      export: boolean;
+    };
+    limits: { concurrent_jobs: number };
+    note: string;
+  }>('/api/v1/ops/status', workspaceId);
+  const retention = useApi<{
+    expired_evidence_with_excerpt: number;
+    suppression_hashes_retained: number;
+    note: string;
+  }>('/api/v1/ops/retention', workspaceId);
+  const [error, setError] = useState<unknown>(null);
+
+  async function toggle(key: string, enabled: boolean) {
+    setError(null);
+    try {
+      await api('/api/v1/workspace-controls', {
+        method: 'PATCH',
+        workspaceId,
+        body: { [`${key}_enabled`]: enabled },
+      });
+      status.reload();
+    } catch (err) {
+      setError(err);
+    }
+  }
+
+  if (!allowed(role, 'readOps')) return null;
+
+  return (
+    <section aria-labelledby="ops" className="card">
+      <h2 id="ops">Operations</h2>
+      <p className="muted small">
+        Process-local health and workspace kill switches. This is not a claim of production
+        capacity.
+      </p>
+      <ErrorNotice error={status.error ?? retention.error ?? error} />
+      {status.data ? (
+        <dl className="facts">
+          <dt>Database</dt>
+          <dd>{status.data.database}</dd>
+          <dt>Redis</dt>
+          <dd>{status.data.redis}</dd>
+          <dt>Pool</dt>
+          <dd>
+            {status.data.pool
+              ? `${status.data.pool.idle} idle / ${status.data.pool.total} total`
+              : 'n/a'}
+          </dd>
+          <dt>Concurrent job cap</dt>
+          <dd>{status.data.limits.concurrent_jobs}</dd>
+        </dl>
+      ) : null}
+      {allowed(role, 'manageOps') && status.data ? (
+        <fieldset>
+          <legend>Workspace kill switches</legend>
+          {(
+            [
+              ['research', 'Research'],
+              ['discovery', 'Discovery'],
+              ['enrich', 'Enrichment'],
+              ['ai', 'AI org-map'],
+              ['export', 'Export'],
+            ] as const
+          ).map(([key, label]) => (
+            <label key={key}>
+              <input
+                type="checkbox"
+                checked={status.data!.controls[key]}
+                onChange={(e) => toggle(key, e.target.checked)}
+              />{' '}
+              {label}
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
+      {retention.data ? (
+        <p className="muted small">
+          Expired evidence excerpts pending redact: {retention.data.expired_evidence_with_excerpt}.{' '}
+          {retention.data.note}
+        </p>
+      ) : null}
+      {allowed(role, 'manageOps') ? (
+        <button
+          type="button"
+          className="button"
+          onClick={async () => {
+            setError(null);
+            try {
+              await api('/api/v1/ops/retention-sweep', { method: 'POST', workspaceId });
+              retention.reload();
+            } catch (err) {
+              setError(err);
+            }
+          }}
+        >
+          Redact expired excerpts
+        </button>
       ) : null}
     </section>
   );

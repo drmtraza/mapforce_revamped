@@ -59,6 +59,7 @@ describe('rbac', () => {
       'score.run',
       'export.start',
       'budget.manage',
+      'ops.manage',
       'icp.write',
     ] as const) {
       expect(can('auditor', p)).toBe(false);

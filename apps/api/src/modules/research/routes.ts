@@ -8,6 +8,7 @@ import { requireTenant, type TenantCtx } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
 import { resolveTenantLimits } from '../budgets/service.ts';
 import { loadCompany } from '../companies/routes.ts';
+import { assertCapability, assertJobCapacity } from '../ops/gate.ts';
 import {
   ACTIVE_JOB_STATUSES as ACTIVE,
   dailyJobQuotaExceeded,
@@ -121,6 +122,7 @@ export const researchRoutes =
           params: z.object({ id: z.uuid() }),
           response: { 202: Accepted },
         },
+        config: { rateLimit: { max: config.RATE_LIMIT_JOB_PER_MINUTE } },
       },
       async (request, reply) => {
         const ctx = await requireTenant(db, request, 'research.start');
@@ -130,6 +132,8 @@ export const researchRoutes =
         const create = () =>
           withContext(db, ctx, async (trx) => {
             const company = await loadCompany(trx, ctx.tenantId, companyId);
+            await assertCapability(trx, ctx.tenantId, config, 'research', 'Research');
+            await assertJobCapacity(trx, ctx.tenantId, config);
             const reusable = await findReusableJob(trx, ctx, companyId, key);
             if (reusable) return reusable;
 

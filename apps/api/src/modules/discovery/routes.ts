@@ -11,6 +11,7 @@ import { DISCOVERY_OPERATIONS, type DiscoveryWorkflowInput } from '../../tempora
 import { recordAudit } from '../audit/service.ts';
 import { resolveTenantLimits } from '../budgets/service.ts';
 import { Company, toCompanyDto } from '../companies/routes.ts';
+import { assertCapability, assertJobCapacity } from '../ops/gate.ts';
 import {
   ACTIVE_JOB_STATUSES,
   dailyJobQuotaExceeded,
@@ -152,6 +153,7 @@ export const discoveryRoutes =
           body: Query.strict(),
           response: { 202: Accepted },
         },
+        config: { rateLimit: { max: config.RATE_LIMIT_JOB_PER_MINUTE } },
       },
       async (request, reply) => {
         const ctx = await requireTenant(db, request, 'discovery.start');
@@ -169,6 +171,8 @@ export const discoveryRoutes =
               .where('idempotency_key', '=', key)
               .executeTakeFirst();
             if (existing) return existing;
+            await assertCapability(trx, ctx.tenantId, config, 'discovery', 'Discovery');
+            await assertJobCapacity(trx, ctx.tenantId, config);
 
             const active = await trx
               .selectFrom('workflow_jobs')

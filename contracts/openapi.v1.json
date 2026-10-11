@@ -7209,13 +7209,17 @@
                         },
                         "export": {
                           "type": "number"
+                        },
+                        "concurrent_jobs": {
+                          "type": "number"
                         }
                       },
                       "required": [
                         "research",
                         "enrich",
                         "ai",
-                        "export"
+                        "export",
+                        "concurrent_jobs"
                       ],
                       "additionalProperties": false
                     },
@@ -7443,6 +7447,351 @@
                     "daily_ai_run_limit",
                     "daily_export_limit",
                     "effective"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/status": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "database": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "error"
+                      ]
+                    },
+                    "redis": {
+                      "type": "string",
+                      "enum": [
+                        "ok",
+                        "skipped",
+                        "error"
+                      ]
+                    },
+                    "pool": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "total": {
+                              "type": "number"
+                            },
+                            "idle": {
+                              "type": "number"
+                            },
+                            "waiting": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "idle",
+                            "waiting"
+                          ],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "limits": {
+                      "type": "object",
+                      "properties": {
+                        "research": {
+                          "type": "number"
+                        },
+                        "enrich": {
+                          "type": "number"
+                        },
+                        "ai": {
+                          "type": "number"
+                        },
+                        "export": {
+                          "type": "number"
+                        },
+                        "concurrent_jobs": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "research",
+                        "enrich",
+                        "ai",
+                        "export",
+                        "concurrent_jobs"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "controls": {
+                      "type": "object",
+                      "properties": {
+                        "research": {
+                          "type": "boolean"
+                        },
+                        "discovery": {
+                          "type": "boolean"
+                        },
+                        "enrich": {
+                          "type": "boolean"
+                        },
+                        "ai": {
+                          "type": "boolean"
+                        },
+                        "export": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "research",
+                        "discovery",
+                        "enrich",
+                        "ai",
+                        "export"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "requests": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "route": {
+                            "type": "string"
+                          },
+                          "count": {
+                            "type": "number"
+                          },
+                          "errors": {
+                            "type": "number"
+                          },
+                          "latency_ms_avg": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "route",
+                          "count",
+                          "errors",
+                          "latency_ms_avg"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "rate_limited": {
+                      "type": "number"
+                    },
+                    "uptime_seconds": {
+                      "type": "number"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "database",
+                    "redis",
+                    "pool",
+                    "limits",
+                    "controls",
+                    "requests",
+                    "rate_limited",
+                    "uptime_seconds",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace-controls": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "research": {
+                      "type": "boolean"
+                    },
+                    "discovery": {
+                      "type": "boolean"
+                    },
+                    "enrich": {
+                      "type": "boolean"
+                    },
+                    "ai": {
+                      "type": "boolean"
+                    },
+                    "export": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "research",
+                    "discovery",
+                    "enrich",
+                    "ai",
+                    "export"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "ops"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "research_enabled": {
+                    "type": "boolean"
+                  },
+                  "discovery_enabled": {
+                    "type": "boolean"
+                  },
+                  "enrich_enabled": {
+                    "type": "boolean"
+                  },
+                  "ai_enabled": {
+                    "type": "boolean"
+                  },
+                  "export_enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "research": {
+                      "type": "boolean"
+                    },
+                    "discovery": {
+                      "type": "boolean"
+                    },
+                    "enrich": {
+                      "type": "boolean"
+                    },
+                    "ai": {
+                      "type": "boolean"
+                    },
+                    "export": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "research",
+                    "discovery",
+                    "enrich",
+                    "ai",
+                    "export"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/retention": {
+      "get": {
+        "tags": [
+          "ops"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "expired_evidence_with_excerpt": {
+                      "type": "number"
+                    },
+                    "suppression_hashes_retained": {
+                      "type": "number"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "expired_evidence_with_excerpt",
+                    "suppression_hashes_retained",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/retention-sweep": {
+      "post": {
+        "tags": [
+          "ops"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redacted": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "redacted"
                   ],
                   "additionalProperties": false
                 }

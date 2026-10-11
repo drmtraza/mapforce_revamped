@@ -6,6 +6,7 @@ import { AppError, notFound } from '../../errors.ts';
 import { requireTenant } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
 import { resolveTenantLimits } from '../budgets/service.ts';
+import { assertCapability } from '../ops/gate.ts';
 import { isDomainSuppressed, isPersonSuppressed } from '../suppressions/check.ts';
 import { toCsv } from './csv.ts';
 
@@ -35,6 +36,7 @@ export const exportRoutes =
           }),
           response: { 200: ExportResult },
         },
+        config: { rateLimit: { max: config.RATE_LIMIT_EXPORT_PER_MINUTE } },
       },
       async (request) => {
         const ctx = await requireTenant(db, request, 'export.start');
@@ -42,6 +44,7 @@ export const exportRoutes =
           throw new AppError('VALIDATION_ERROR', 'list_id is required when scope is list.');
         }
         return withContext(db, ctx, async (trx) => {
+          await assertCapability(trx, ctx.tenantId, config, 'export', 'Export');
           const limits = await resolveTenantLimits(trx, ctx.tenantId, config);
           const today = await trx
             .selectFrom('export_batches')

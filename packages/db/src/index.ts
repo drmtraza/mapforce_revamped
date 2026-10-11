@@ -21,15 +21,26 @@ export interface CreateDbOptions {
   applicationName?: string;
 }
 
+const pools = new WeakMap<Db, pg.Pool>();
+
 export function createDb(opts: CreateDbOptions): Db {
   const pool = new pg.Pool({
     connectionString: opts.connectionString,
     max: opts.maxConnections ?? 10,
     statement_timeout: opts.statementTimeoutMs ?? 10_000,
     idleTimeoutMillis: 30_000,
+    connectionTimeoutMillis: 5_000,
     application_name: opts.applicationName ?? 'mapforce',
   });
-  return new Kysely<Database>({ dialect: new PostgresDialect({ pool }) });
+  const db = new Kysely<Database>({ dialect: new PostgresDialect({ pool }) });
+  pools.set(db, pool);
+  return db;
+}
+
+export function poolStats(db: Db): { total: number; idle: number; waiting: number } | null {
+  const pool = pools.get(db);
+  if (!pool) return null;
+  return { total: pool.totalCount, idle: pool.idleCount, waiting: pool.waitingCount };
 }
 
 /**

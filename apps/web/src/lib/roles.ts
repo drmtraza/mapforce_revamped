@@ -20,6 +20,8 @@ const ROLES = {
   startExport: ['owner', 'admin', 'manager'],
   readUsage: ['owner', 'admin', 'manager', 'auditor'],
   manageBudget: ['owner', 'admin'],
+  readOps: ['owner', 'admin', 'manager', 'auditor'],
+  manageOps: ['owner', 'admin'],
 } as const satisfies Record<string, readonly WorkspaceRole[]>;
 
 export function allowed(role: WorkspaceRole | null, action: keyof typeof ROLES): boolean {

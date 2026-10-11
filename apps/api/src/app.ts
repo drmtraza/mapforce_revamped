@@ -12,7 +12,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type { Redis } from 'ioredis';
-import { sql, type Db } from '@mapforce/db';
+import { poolStats, sql, type Db } from '@mapforce/db';
 import type { IdentityProvider } from './auth/idp.ts';
 import { resolveSession, SESSION_COOKIE } from './auth/sessions.ts';
 import type { Config } from './config.ts';
@@ -42,6 +42,9 @@ import { listRoutes } from './modules/lists/routes.ts';
 import { crmRoutes } from './modules/crm/routes.ts';
 import { exportRoutes } from './modules/exports/routes.ts';
 import { usageRoutes } from './modules/usage/routes.ts';
+import { observeRequest, prometheusText } from './modules/ops/metrics.ts';
+import { opsRoutes } from './modules/ops/routes.ts';
+import { WORKSPACE_HEADER } from './http/context.ts';
 
 export interface AppDeps {
   config: Config;
@@ -81,8 +84,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   await app.register(rateLimit, {
     max: config.RATE_LIMIT_PER_MINUTE,
     timeWindow: '1 minute',
+    hook: 'preHandler',
     ...(deps.redis ? { redis: deps.redis } : {}),
-    keyGenerator: (req) => req.auth?.userId ?? req.ip,
+    keyGenerator: (req) => {
+      const workspace = req.headers[WORKSPACE_HEADER];
+      const tenant = typeof workspace === 'string' ? workspace.toLowerCase() : '';
+      if (req.auth?.userId) return `user:${req.auth.userId}:ws:${tenant || 'none'}`;
+      return `ip:${req.ip}`;
+    },
     errorResponseBuilder: (req) => ({
       statusCode: 429,
       ...errorBody(new AppError('RATE_LIMITED', 'Too many requests.'), req.id),
@@ -97,6 +106,11 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       },
     },
     transform: jsonSchemaTransform,
+  });
+
+  app.addHook('onResponse', async (request, reply) => {
+    const route = request.routeOptions.url ?? request.url.split('?')[0] ?? 'unknown';
+    observeRequest(request.method, route, reply.statusCode, reply.elapsedTime);
   });
 
   app.addHook('onRequest', async (request, reply) => {
@@ -141,12 +155,32 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   app.get('/healthz', { schema: { hide: true } }, async () => ({ status: 'ok' }));
   app.get('/readyz', { schema: { hide: true } }, async (_req, reply) => {
+    const checks: Record<string, 'ok' | 'error' | 'skipped'> = { database: 'ok', redis: 'skipped' };
     try {
       await sql`SELECT 1`.execute(deps.db);
-      return { status: 'ready' };
     } catch {
-      return reply.status(503).send({ status: 'unavailable' });
+      checks.database = 'error';
     }
+    if (deps.redis) {
+      try {
+        checks.redis = (await deps.redis.ping()) === 'PONG' ? 'ok' : 'error';
+      } catch {
+        checks.redis = 'error';
+      }
+    }
+    if (checks.database === 'error' || checks.redis === 'error') {
+      return reply.status(503).send({ status: 'unavailable', checks });
+    }
+    return { status: 'ready', checks };
+  });
+  app.get('/metrics', { schema: { hide: true } }, async (_req, reply) => {
+    const pool = poolStats(deps.db);
+    const text = prometheusText({
+      mapforce_db_pool_total: pool?.total ?? 0,
+      mapforce_db_pool_idle: pool?.idle ?? 0,
+      mapforce_db_pool_waiting: pool?.waiting ?? 0,
+    });
+    return reply.type('text/plain; version=0.0.4').send(text);
   });
 
   await app.register(
@@ -174,6 +208,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(crmRoutes(deps));
       await v1.register(exportRoutes(deps));
       await v1.register(usageRoutes(deps));
+      await v1.register(opsRoutes(deps));
     },
     { prefix: '/api/v1' },
   );

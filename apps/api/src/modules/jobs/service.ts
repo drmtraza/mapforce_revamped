@@ -45,3 +45,18 @@ export async function dailyJobQuotaExceeded(
   });
   return true;
 }
+
+/** One tenant cannot occupy every worker slot. Counts queued + running + cancel_requested. */
+export async function concurrentJobLimitExceeded(
+  trx: Tx,
+  tenantId: string,
+  limit: number,
+): Promise<boolean> {
+  const row = await trx
+    .selectFrom('workflow_jobs')
+    .select((eb) => eb.fn.countAll<string>().as('n'))
+    .where('tenant_id', '=', tenantId)
+    .where('status', 'in', ACTIVE_JOB_STATUSES)
+    .executeTakeFirstOrThrow();
+  return Number(row.n) >= limit;
+}

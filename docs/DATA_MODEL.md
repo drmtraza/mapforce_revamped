@@ -59,6 +59,7 @@ As-built Phase 5 (migration `0013_bd_workspace.sql`):
 - `tasks`, `notes`
 - `export_batches` (scope `companies|list`, row_count, omitted_suppressed)
 - `tenant_budgets` (nullable daily overrides; missing row falls back to env defaults)
+- `workspace_controls` (per-workspace kill switches; global `FEATURE_*` env can still force off)
 `activity_events` remains a conceptual timeline; audit uses `audit_events`.
 
 ### Jobs, usage and audit

@@ -8,6 +8,7 @@ import { requireTenant } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
 import { resolveTenantLimits } from '../budgets/service.ts';
 import { hashContactValue } from '../contacts/crypto.ts';
+import { assertCapability, assertJobCapacity } from '../ops/gate.ts';
 import {
   ACTIVE_JOB_STATUSES as ACTIVE,
   dailyJobQuotaExceeded,
@@ -35,6 +36,7 @@ export const enrichmentRoutes =
           params: z.object({ id: z.uuid() }),
           response: { 202: Accepted },
         },
+        config: { rateLimit: { max: config.RATE_LIMIT_JOB_PER_MINUTE } },
       },
       async (request, reply) => {
         const ctx = await requireTenant(db, request, 'enrich.start');
@@ -59,6 +61,8 @@ export const enrichmentRoutes =
               .where('p.id', '=', personId)
               .executeTakeFirst();
             if (!person || person.merged_into_id) throw notFound('Person');
+            await assertCapability(trx, ctx.tenantId, config, 'enrich', 'Enrichment');
+            await assertJobCapacity(trx, ctx.tenantId, config);
 
             const blocked = await trx
               .selectFrom('consent_suppressions')

@@ -3444,6 +3444,7 @@ export interface paths {
                                 enrich: number;
                                 ai: number;
                                 export: number;
+                                concurrent_jobs: number;
                             };
                             note: string;
                         };
@@ -3542,6 +3543,226 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/v1/ops/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            database: "ok" | "error";
+                            /** @enum {string} */
+                            redis: "ok" | "skipped" | "error";
+                            pool: {
+                                total: number;
+                                idle: number;
+                                waiting: number;
+                            } | null;
+                            limits: {
+                                research: number;
+                                enrich: number;
+                                ai: number;
+                                export: number;
+                                concurrent_jobs: number;
+                            };
+                            controls: {
+                                research: boolean;
+                                discovery: boolean;
+                                enrich: boolean;
+                                ai: boolean;
+                                export: boolean;
+                            };
+                            requests: {
+                                route: string;
+                                count: number;
+                                errors: number;
+                                latency_ms_avg: number;
+                            }[];
+                            rate_limited: number;
+                            uptime_seconds: number;
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspace-controls": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            research: boolean;
+                            discovery: boolean;
+                            enrich: boolean;
+                            ai: boolean;
+                            export: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        research_enabled?: boolean;
+                        discovery_enabled?: boolean;
+                        enrich_enabled?: boolean;
+                        ai_enabled?: boolean;
+                        export_enabled?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            research: boolean;
+                            discovery: boolean;
+                            enrich: boolean;
+                            ai: boolean;
+                            export: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/ops/retention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            expired_evidence_with_excerpt: number;
+                            suppression_hashes_retained: number;
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/retention-sweep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            redacted: number;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }

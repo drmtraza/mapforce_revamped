@@ -72,6 +72,9 @@
 - `POST /exports` (suppression applied; formula-injection-safe CSV; contact values omitted)
 - `GET /usage`
 - `GET/PATCH /workspace-budget`
+- `GET /ops/status`, `GET/PATCH /workspace-controls`
+- `GET /ops/retention`, `POST /ops/retention-sweep` (redacts expired excerpts only)
+- `GET /metrics` (process scrape; no tenant labels; hide behind ingress)
 - `GET /audit-events`
 
 ## Async job contract

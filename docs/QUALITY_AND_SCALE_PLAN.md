@@ -79,3 +79,5 @@ Track:
 - Provider kill switch and spending caps tested.
 - Error budgets, dashboards and runbooks exist.
 - Load-test results reviewed; known limitations documented.
+
+As-built Phase 6: in-process authenticated read p95 is recorded in `PHASE_6_REPORT.md`. k6 `infra/load/health.js` is an operator script and is not run in CI. 10K concurrent sessions and 1M users remain unproven. D13 hosting is unset.

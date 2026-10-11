@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/coverage/**',
       'workers/**',
+      'infra/load/**',
       '**/next-env.d.ts',
     ],
   },

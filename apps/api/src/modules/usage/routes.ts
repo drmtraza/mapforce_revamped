@@ -22,6 +22,7 @@ const Usage = z.object({
     enrich: z.number(),
     ai: z.number(),
     export: z.number(),
+    concurrent_jobs: z.number(),
   }),
   note: z.string(),
 });
@@ -92,7 +93,7 @@ export const usageRoutes =
             exports: Number(exports.n),
             ai_tokens: tokenSum,
             provider_rows: Number(providers.n),
-            limits,
+            limits: { ...limits, concurrent_jobs: config.TENANT_CONCURRENT_JOB_LIMIT },
             note: 'Usage is auditable workspace activity for the last 24 hours. Billing integration is not enabled.',
           };
         });

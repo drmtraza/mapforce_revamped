@@ -9,6 +9,7 @@ import { requireTenant } from '../../http/context.ts';
 import { applyOverlay, gatherOrgMapRequest } from '../ai/gather.ts';
 import { resolveTenantLimits } from '../budgets/service.ts';
 import { persistAiRun } from '../ai/persist.ts';
+import { assertCapability, assertJobCapacity } from '../ops/gate.ts';
 import { deduceOrgMap, selectProvider } from '../ai/service.ts';
 import { recordAudit } from '../audit/service.ts';
 import { loadCompany } from '../companies/routes.ts';
@@ -83,6 +84,7 @@ export const orgMapRoutes =
           params: z.object({ id: z.uuid() }),
           response: { 202: Accepted },
         },
+        config: { rateLimit: { max: config.RATE_LIMIT_JOB_PER_MINUTE } },
       },
       async (request, reply) => {
         const ctx = await requireTenant(db, request, 'orgmap.run');
@@ -92,6 +94,8 @@ export const orgMapRoutes =
         const create = () =>
           withContext(db, ctx, async (trx) => {
             await loadCompany(trx, ctx.tenantId, companyId);
+            await assertCapability(trx, ctx.tenantId, config, 'ai', 'AI organization mapping');
+            await assertJobCapacity(trx, ctx.tenantId, config);
             let reusable = trx
               .selectFrom('workflow_jobs')
               .select(['id', 'status'])

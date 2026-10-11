@@ -1,0 +1,43 @@
+{
+  "title": "Mapforce API (process scrape)",
+  "uid": "mapforce-api",
+  "schemaVersion": 39,
+  "timezone": "browser",
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Process up",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "targets": [{ "expr": "mapforce_up", "refId": "A" }]
+    },
+    {
+      "type": "stat",
+      "title": "HTTP 429s",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{ "expr": "mapforce_rate_limited_total", "refId": "A" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Request rate",
+      "gridPos": { "h": 8, "w": 12, "x": 8, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(mapforce_http_requests_total[1m])) by (route)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "DB pool",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "targets": [
+        { "expr": "mapforce_db_pool_total", "legendFormat": "total", "refId": "A" },
+        { "expr": "mapforce_db_pool_idle", "legendFormat": "idle", "refId": "B" },
+        { "expr": "mapforce_db_pool_waiting", "legendFormat": "waiting", "refId": "C" }
+      ]
+    }
+  ],
+  "templating": { "list": [] },
+  "annotations": { "list": [] }
+}

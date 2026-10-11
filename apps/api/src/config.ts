@@ -5,6 +5,11 @@ const bool = z
   .transform((v) => v === 'true')
   .default(false);
 
+const boolOn = z
+  .enum(['true', 'false'])
+  .transform((v) => v === 'true')
+  .default(true);
+
 const ConfigSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -54,6 +59,7 @@ const ConfigSchema = z
     TENANT_DAILY_ENRICH_LIMIT: z.coerce.number().int().min(0).max(100_000).default(50),
     TENANT_DAILY_AI_RUN_LIMIT: z.coerce.number().int().min(0).max(100_000).default(20),
     TENANT_DAILY_EXPORT_LIMIT: z.coerce.number().int().min(0).max(100_000).default(20),
+    TENANT_CONCURRENT_JOB_LIMIT: z.coerce.number().int().min(1).max(1_000).default(8),
     AI_MAX_TOKENS: z.coerce.number().int().min(256).max(100_000).default(4000),
     AI_TIMEOUT_MS: z.coerce.number().int().min(500).max(120_000).default(15_000),
     FEATURE_HERMES: bool,
@@ -67,6 +73,13 @@ const ConfigSchema = z
     ),
     CONTACT_FIELD_KEY: z.string().min(32, 'CONTACT_FIELD_KEY must be at least 32 characters'),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(100_000).default(300),
+    RATE_LIMIT_EXPORT_PER_MINUTE: z.coerce.number().int().min(1).max(1_000).default(10),
+    RATE_LIMIT_JOB_PER_MINUTE: z.coerce.number().int().min(1).max(1_000).default(30),
+    FEATURE_RESEARCH: boolOn,
+    FEATURE_DISCOVERY: boolOn,
+    FEATURE_ENRICH: boolOn,
+    FEATURE_AI: boolOn,
+    FEATURE_EXPORT: boolOn,
     FEATURE_MOCK_PROVIDERS: z
       .enum(['true', 'false'])
       .transform((v) => v === 'true')
