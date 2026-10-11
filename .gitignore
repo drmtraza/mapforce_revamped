@@ -33,3 +33,5 @@ test-results/
 Thumbs.db
 .idea/
 .vscode/
+
+next-env.d.ts

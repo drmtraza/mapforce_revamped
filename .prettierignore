@@ -12,4 +12,9 @@ skills
 # Owner-supplied v1 contracts are kept byte-identical
 contracts/lead.schema.json
 contracts/org-map.schema.json
+# Generated; CI regenerates and diffs these
 contracts/openapi.v1.json
+apps/web/src/lib/api-types.ts
+apps/web/next-env.d.ts
+playwright-report
+test-results
