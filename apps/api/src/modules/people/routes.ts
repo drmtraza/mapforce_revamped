@@ -261,12 +261,14 @@ export const peopleRoutes =
             .where('tenant_id', '=', ctx.tenantId)
             .where('person_id', 'in', personIds)
             .orderBy('status')
+            .limit(100)
             .execute();
           const aliases = await trx
             .selectFrom('person_aliases')
             .select('alias')
             .where('tenant_id', '=', ctx.tenantId)
             .where('person_id', '=', person.id)
+            .limit(50)
             .execute();
           const contacts = await trx
             .selectFrom('contact_points')
@@ -284,6 +286,7 @@ export const peopleRoutes =
             .where('tenant_id', '=', ctx.tenantId)
             .where('person_id', 'in', personIds)
             .orderBy('created_at', 'desc')
+            .limit(200)
             .execute();
           const rawMatches = await trx
             .selectFrom('match_candidates')
@@ -293,6 +296,7 @@ export const peopleRoutes =
             .where((eb) =>
               eb.or([eb('person_a_id', '=', person.id), eb('person_b_id', '=', person.id)]),
             )
+            .limit(50)
             .execute();
           const otherIds = rawMatches.map((m) =>
             m.person_a_id === person.id ? m.person_b_id : m.person_a_id,
@@ -323,6 +327,7 @@ export const peopleRoutes =
             .where('tenant_id', '=', ctx.tenantId)
             .where('survivor_id', '=', person.id)
             .where('undone_at', 'is', null)
+            .limit(50)
             .execute();
           const subjectIds = [person.id, ...roles.map((r) => r.id)];
           const claims = await trx

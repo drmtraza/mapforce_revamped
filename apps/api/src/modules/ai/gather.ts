@@ -54,6 +54,7 @@ export async function gatherOrgMapRequest(
         .where('c.tenant_id', '=', tenantId)
         .where('c.subject_type', '=', 'person')
         .where('c.subject_id', 'in', personIds)
+        .limit(2000)
         .execute()
     : [];
   const evidenceByPerson = new Map<string, Set<string>>();
@@ -82,6 +83,7 @@ export async function gatherOrgMapRequest(
         .where('predicate', 'in', PERSON_PREDICATES)
         .where('subject_id', 'in', personIds)
         .where('object_id', 'in', personIds)
+        .limit(500)
         .execute()
     : [];
   const relEvidence = rels.length
@@ -94,6 +96,7 @@ export async function gatherOrgMapRequest(
           'in',
           rels.map((r) => r.id),
         )
+        .limit(2000)
         .execute()
     : [];
   const evidenceByRel = new Map<string, string[]>();

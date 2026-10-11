@@ -1,4 +1,4 @@
-import type { Tx } from '@mapforce/db';
+import { sql, type Tx } from '@mapforce/db';
 import type { Config } from '../../config.ts';
 import { clampToPlan, planCaps } from '../rollout/plans.ts';
 
@@ -68,13 +68,13 @@ export async function resolveTenantLimits(
 
 export async function providerCostUsed(trx: Tx, tenantId: string): Promise<number> {
   const since = new Date(Date.now() - 86_400_000);
-  const rows = await trx
+  const row = await trx
     .selectFrom('provider_usage')
-    .select(['estimated_cost', 'actual_cost'])
+    .select(sql<string>`coalesce(sum(coalesce(actual_cost, estimated_cost)), 0)`.as('total'))
     .where('tenant_id', '=', tenantId)
     .where('occurred_at', '>=', since)
-    .execute();
-  return rows.reduce((n, r) => n + Number(r.actual_cost ?? r.estimated_cost ?? 0), 0);
+    .executeTakeFirst();
+  return Number(row?.total ?? 0);
 }
 
 export async function providerCostCeilingExceeded(

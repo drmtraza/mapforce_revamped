@@ -2,7 +2,16 @@ import { createCipheriv, createHash, randomBytes } from 'node:crypto';
 
 const ALGO = 'aes-256-gcm';
 
+let configuredKey: string | null = null;
+
+/** Prefer Config.CONTACT_FIELD_KEY via buildApp; env is only a fallback for unit tests. */
+export function configureContactFieldKey(key: string): void {
+  if (key.length < 32) throw new Error('CONTACT_FIELD_KEY must be at least 32 characters');
+  configuredKey = key;
+}
+
 export function contactFieldKey(): string {
+  if (configuredKey) return configuredKey;
   const key = process.env.CONTACT_FIELD_KEY ?? '';
   if (key.length < 32) throw new Error('CONTACT_FIELD_KEY must be at least 32 characters');
   return key;

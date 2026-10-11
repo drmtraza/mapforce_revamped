@@ -99,7 +99,6 @@ export async function startTestEnv(overrides: Record<string, string> = {}): Prom
   const storage = new MemoryStorage();
   const dispatcher = new RecordingDispatcher();
   const config = loadConfig(baseEnv({ DATABASE_APP_URL: pgh.appUrl, ...overrides }));
-  process.env.CONTACT_FIELD_KEY = config.CONTACT_FIELD_KEY;
   const app = await buildApp({ config, db, storage, dispatcher, idp: fakeIdp, logger: false });
   await app.ready();
   const owner = new pg.Client({ connectionString: pgh.ownerUrl });

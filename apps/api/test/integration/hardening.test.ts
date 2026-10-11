@@ -53,6 +53,16 @@ describe('hardening', () => {
     expect(metrics.body).not.toMatch(/tenant_id=/);
   });
 
+  it('hides OpenAPI when EXPOSE_OPENAPI is false', async () => {
+    const locked = await startTestEnv({ EXPOSE_OPENAPI: 'false' });
+    try {
+      const res = await locked.app.inject({ method: 'GET', url: '/api/v1/openapi.json' });
+      expect(res.statusCode).toBe(404);
+    } finally {
+      await locked.close();
+    }
+  });
+
   it('exposes ops status and hides it from another tenant', async () => {
     const status = await call(env, alice, 'GET', '/api/v1/ops/status');
     expect(status.status).toBe(200);

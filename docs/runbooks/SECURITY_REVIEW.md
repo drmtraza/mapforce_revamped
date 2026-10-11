@@ -31,7 +31,7 @@ This is an engineering review, not a pentest or legal opinion.
 
 | ID | Item | Risk | Disposition |
 |---|---|---|---|
-| O1 | `/metrics` and `/healthz` are unauthenticated | Info disclosure of process shape | Restrict at ingress in any non-local deploy |
+| O1 | `/healthz` unauthenticated; `/metrics` gated | Process shape / scrape abuse | `/metrics`: require `METRICS_TOKEN` or fail closed in production; still restrict scrape path at ingress. `/healthz` remains liveness-only. |
 | O2 | No WAF / bot management | Abuse of public login | Deferred with hosting (D13) |
 | O3 | Hermes/live providers unevaluated | Data sent to a model host | Remain disabled |
 | O4 | D12 licensed contacts disabled | N/A | Leave off |

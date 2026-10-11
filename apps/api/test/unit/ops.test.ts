@@ -48,6 +48,13 @@ describe('hardening config defaults', () => {
     expect(cfg.TENANT_CONCURRENT_JOB_LIMIT).toBe(8);
     expect(cfg.RATE_LIMIT_EXPORT_PER_MINUTE).toBe(10);
     expect(cfg.RATE_LIMIT_JOB_PER_MINUTE).toBe(30);
+    expect(cfg.EXPOSE_OPENAPI).toBe(true);
+  });
+
+  it('defaults OpenAPI exposure off when not set in env', () => {
+    const cfg = loadConfig(baseEnv({ EXPOSE_OPENAPI: 'false' }));
+    expect(cfg.EXPOSE_OPENAPI).toBe(false);
+    expect(cfg.METRICS_TOKEN).toBeUndefined();
   });
 });
 

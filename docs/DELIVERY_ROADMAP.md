@@ -63,6 +63,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - Data-quality review and incident triage.
 - Gradual quota increase based on observed capacity and provider permissions.
 
+## Phase 8 — Review, refactor and deployability
+- Review against PRD acceptance criteria and project rules; fix highest-risk gaps first.
+- Bound heavy reads; gate metrics/OpenAPI; extend isolation/RLS coverage.
+- Document D13 hosting recommendation and staging deploy checklist (no cloud credentials required).
+- D12 licensed contacts remain disabled until procurement/terms approval.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.

@@ -88,8 +88,9 @@ export default function PipelinePage() {
                     </p>
                     {canAssign ? (
                       <label>
-                        Stage
+                        Stage for {a.canonical_name}
                         <select
+                          aria-label={`Stage for ${a.canonical_name}`}
                           value={a.stage}
                           onChange={(e) => move(a.company_id, e.target.value as Account['stage'])}
                         >

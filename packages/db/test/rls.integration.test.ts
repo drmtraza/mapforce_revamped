@@ -256,4 +256,86 @@ describe('tenant isolation (database layer)', () => {
       ),
     ).rejects.toThrow(/check constraint/);
   });
+
+  it('isolates Phase 5–7 tenant tables (budgets, feedback, incidents, lists)', async () => {
+    await withContext(db, { tenantId: tenantA, userId: userA }, async (trx) => {
+      await trx
+        .insertInto('tenant_budgets')
+        .values({ tenant_id: tenantA, daily_export_limit: 3, updated_by: userA })
+        .onConflict((oc) => oc.column('tenant_id').doUpdateSet({ daily_export_limit: 3 }))
+        .execute();
+      await trx
+        .insertInto('workspace_controls')
+        .values({ tenant_id: tenantA })
+        .onConflict((oc) => oc.column('tenant_id').doNothing())
+        .execute();
+      await trx
+        .insertInto('feedback_items')
+        .values({
+          tenant_id: tenantA,
+          author_user_id: userA,
+          category: 'ux',
+          body: 'RLS fixture feedback',
+        })
+        .execute();
+      await trx
+        .insertInto('incident_triage_notes')
+        .values({
+          tenant_id: tenantA,
+          author_user_id: userA,
+          severity: 'P3',
+          summary: 'RLS fixture incident',
+        })
+        .execute();
+      const list = await trx
+        .insertInto('workspace_lists')
+        .values({ tenant_id: tenantA, name: 'RLS list', kind: 'companies', created_by: userA })
+        .returning('id')
+        .executeTakeFirstOrThrow();
+      const company = await trx
+        .selectFrom('companies')
+        .select('id')
+        .where('tenant_id', '=', tenantA)
+        .executeTakeFirstOrThrow();
+      await trx
+        .insertInto('list_items')
+        .values({
+          tenant_id: tenantA,
+          list_id: list.id,
+          entity_type: 'company',
+          entity_id: company.id,
+        })
+        .execute();
+    });
+
+    const budgets = await withContext(db, { tenantId: tenantB, userId: userB }, (trx) =>
+      trx.selectFrom('tenant_budgets').selectAll().where('tenant_id', '=', tenantA).execute(),
+    );
+    expect(budgets).toEqual([]);
+    const feedback = await withContext(db, { tenantId: tenantB, userId: userB }, (trx) =>
+      trx.selectFrom('feedback_items').selectAll().execute(),
+    );
+    expect(feedback).toEqual([]);
+    const incidents = await withContext(db, { tenantId: tenantB, userId: userB }, (trx) =>
+      trx.selectFrom('incident_triage_notes').selectAll().execute(),
+    );
+    expect(incidents).toEqual([]);
+    const items = await withContext(db, { tenantId: tenantB, userId: userB }, (trx) =>
+      trx.selectFrom('list_items').selectAll().execute(),
+    );
+    expect(items).toEqual([]);
+    await expect(
+      withContext(db, { tenantId: tenantB, userId: userB }, (trx) =>
+        trx
+          .insertInto('feedback_items')
+          .values({
+            tenant_id: tenantA,
+            author_user_id: userB,
+            category: 'bug',
+            body: 'cross-tenant write',
+          })
+          .execute(),
+      ),
+    ).rejects.toThrow(/row-level security/);
+  });
 });

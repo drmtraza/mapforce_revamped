@@ -67,6 +67,13 @@ const ConfigSchema = z
       (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
       z.string().min(16).optional(),
     ),
+    // When set, GET /metrics requires x-metrics-token. In production, omit = 404 (fail closed).
+    METRICS_TOKEN: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.string().min(16).optional(),
+    ),
+    // Expose GET /api/v1/openapi.json. Off by default; enable only for local/docs tooling.
+    EXPOSE_OPENAPI: bool,
     AI_MAX_TOKENS: z.coerce.number().int().min(256).max(100_000).default(4000),
     AI_TIMEOUT_MS: z.coerce.number().int().min(500).max(120_000).default(15_000),
     FEATURE_HERMES: bool,

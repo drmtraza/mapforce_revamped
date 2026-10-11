@@ -1,5 +1,9 @@
 # Contract changelog
 
+## 2026-10-11 (Phases 4–8)
+- **`openapi.v1.json` — additive** org-map AI, scoring/lists/CRM/exports/usage (Phase 4–5), ops/metrics/controls (Phase 6), rollout/flags/feedback/synthetic/incidents/ramp (Phase 7). See `docs/PHASE_4_REPORT.md` … `PHASE_7_REPORT.md`.
+- **Phase 8 ops hardening (non-breaking behaviour):** `GET /metrics` token/fail-closed rules; `GET /api/v1/openapi.json` gated by `EXPOSE_OPENAPI` (default off unless enabled). Documented in `docs/PHASE_8_REPORT.md`.
+
 ## 2026-10-11 (Phase 3)
 - **`adapter-result.v1.schema.json` — additive, non-breaking.**
   - `operation` enum adds `fetch_intent_signals` and `enrich_contact`.

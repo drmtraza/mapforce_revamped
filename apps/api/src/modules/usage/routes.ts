@@ -76,13 +76,15 @@ export const usageRoutes =
             .where('tenant_id', '=', ctx.tenantId)
             .where('created_at', '>=', since)
             .executeTakeFirstOrThrow();
-          const tokenRows = await trx
+          const tokenRow = await trx
             .selectFrom('ai_runs')
-            .select('token_count')
+            .select((eb) =>
+              eb.fn.coalesce(eb.fn.sum<string>('token_count'), eb.val('0')).as('total'),
+            )
             .where('tenant_id', '=', ctx.tenantId)
             .where('created_at', '>=', since)
-            .execute();
-          const tokenSum = tokenRows.reduce((n, r) => n + Number(r.token_count), 0);
+            .executeTakeFirst();
+          const tokenSum = Number(tokenRow?.total ?? 0);
           const providers = await trx
             .selectFrom('provider_usage')
             .select((eb) => eb.fn.countAll<string>().as('n'))

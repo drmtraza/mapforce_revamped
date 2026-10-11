@@ -14,6 +14,7 @@ export function baseEnv(overrides: Record<string, string> = {}): NodeJS.ProcessE
     S3_SECRET_ACCESS_KEY: 'test',
     CONTACT_FIELD_KEY: 'test-contact-field-key-not-for-production',
     DEFAULT_TENANT_PLAN: 'development',
+    EXPOSE_OPENAPI: 'true',
     ...overrides,
   };
 }

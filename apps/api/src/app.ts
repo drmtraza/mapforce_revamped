@@ -42,6 +42,7 @@ import { listRoutes } from './modules/lists/routes.ts';
 import { crmRoutes } from './modules/crm/routes.ts';
 import { exportRoutes } from './modules/exports/routes.ts';
 import { usageRoutes } from './modules/usage/routes.ts';
+import { configureContactFieldKey } from './modules/contacts/crypto.ts';
 import { observeRequest, prometheusText } from './modules/ops/metrics.ts';
 import { opsRoutes } from './modules/ops/routes.ts';
 import { rolloutRoutes } from './modules/rollout/routes.ts';
@@ -63,6 +64,7 @@ export const CSRF_HEADER = 'x-mapforce-csrf';
 
 export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   const { config } = deps;
+  configureContactFieldKey(config.CONTACT_FIELD_KEY);
   const app = Fastify({
     logger: deps.logger === false ? false : loggerOptions(config.LOG_LEVEL),
     bodyLimit: 256 * 1024,
@@ -174,7 +176,19 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     }
     return { status: 'ready', checks };
   });
-  app.get('/metrics', { schema: { hide: true } }, async (_req, reply) => {
+  app.get('/metrics', { schema: { hide: true } }, async (request, reply) => {
+    const expected = config.METRICS_TOKEN;
+    if (expected) {
+      if (request.headers['x-metrics-token'] !== expected) {
+        return reply
+          .status(404)
+          .send(errorBody(new AppError('NOT_FOUND', 'Route not found.'), request.id));
+      }
+    } else if (config.NODE_ENV === 'production') {
+      return reply
+        .status(404)
+        .send(errorBody(new AppError('NOT_FOUND', 'Route not found.'), request.id));
+    }
     const pool = poolStats(deps.db);
     const text = prometheusText({
       mapforce_db_pool_total: pool?.total ?? 0,
@@ -186,7 +200,14 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
 
   await app.register(
     async (v1) => {
-      v1.get('/openapi.json', { schema: { hide: true } }, async () => app.swagger());
+      v1.get('/openapi.json', { schema: { hide: true } }, async (request, reply) => {
+        if (!config.EXPOSE_OPENAPI) {
+          return reply
+            .status(404)
+            .send(errorBody(new AppError('NOT_FOUND', 'Route not found.'), request.id));
+        }
+        return app.swagger();
+      });
       await v1.register(authRoutes(deps), { prefix: '/auth' });
       await v1.register(workspaceRoutes(deps));
       await v1.register(icpRoutes(deps));

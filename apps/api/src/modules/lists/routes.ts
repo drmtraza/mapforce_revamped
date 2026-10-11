@@ -44,15 +44,13 @@ export const listRoutes =
             .orderBy('created_at', 'desc')
             .limit(100)
             .execute();
-          const itemRows = await trx
+          const counts = await trx
             .selectFrom('list_items')
-            .select('list_id')
+            .select(['list_id', (eb) => eb.fn.countAll<string>().as('n')])
             .where('tenant_id', '=', ctx.tenantId)
+            .groupBy('list_id')
             .execute();
-          const byList = new Map<string, number>();
-          for (const row of itemRows) {
-            byList.set(row.list_id, (byList.get(row.list_id) ?? 0) + 1);
-          }
+          const byList = new Map(counts.map((r) => [r.list_id, Number(r.n)]));
           return lists.map((l) => ({
             id: l.id,
             name: l.name,
