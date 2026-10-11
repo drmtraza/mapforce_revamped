@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/org-map.v2.schema.json",
+  "title": "Evidence-backed Organization Map (v2)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "company_id", "people", "relationships", "unknowns", "conflicts"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "company_id": { "type": "string", "minLength": 1 },
+    "people": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["person_id", "persona", "confidence", "evidence_ids"],
+        "properties": {
+          "person_id": { "type": "string", "minLength": 1 },
+          "display_name": { "type": ["string", "null"] },
+          "canonical_title": { "type": ["string", "null"] },
+          "review_status": {
+            "type": "string",
+            "enum": ["unreviewed", "accepted", "rejected", "disputed"]
+          },
+          "persona": {
+            "type": "string",
+            "enum": [
+              "economic_buyer",
+              "functional_champion",
+              "technical_evaluator",
+              "operational_user",
+              "procurement",
+              "unknown"
+            ]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "outreach_angle": {
+            "oneOf": [
+              { "type": "null" },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["value", "claim_type", "confidence", "evidence_ids", "rationale"],
+                "properties": {
+                  "value": { "type": "string", "minLength": 1 },
+                  "claim_type": { "const": "model_inference" },
+                  "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "evidence_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": { "type": "string", "minLength": 1 }
+                  },
+                  "rationale": { "type": "string", "minLength": 1 }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "subject_person_id",
+          "predicate",
+          "object_person_id",
+          "status",
+          "claim_type",
+          "confidence",
+          "evidence_ids",
+          "rationale"
+        ],
+        "properties": {
+          "relationship_id": { "type": "string" },
+          "subject_person_id": { "type": "string", "minLength": 1 },
+          "predicate": {
+            "type": "string",
+            "enum": ["REPORTS_TO", "INFLUENCES", "DECIDES_FOR", "WORKS_WITH"]
+          },
+          "object_person_id": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["verified", "inferred", "disputed", "expired"] },
+          "claim_type": {
+            "type": "string",
+            "enum": ["source_fact", "provider_fact", "model_inference", "user_assertion"]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "rationale": { "type": "string", "minLength": 1 }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "claim_type": { "const": "model_inference" } } },
+            "then": { "properties": { "status": { "enum": ["inferred", "disputed"] } } }
+          }
+        ]
+      }
+    },
+    "unknowns": { "type": "array", "items": { "type": "string" } },
+    "conflicts": { "type": "array", "items": { "type": "string" } }
+  }
+}

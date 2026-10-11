@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/adapter-result.v1.schema.json",
+  "title": "Provider adapter result (v1)",
+  "description": "Normalized output of one provider adapter operation. Produced by workers, validated by the control plane before any canonical write. Evidence is referenced by payload-local refs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source_key",
+    "provider",
+    "operation",
+    "status",
+    "error",
+    "usage",
+    "evidence",
+    "company_claims",
+    "people",
+    "relationships"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "source_key": { "type": "string", "pattern": "^[a-z][a-z0-9_]{1,63}$" },
+    "provider": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "operation": {
+      "type": "string",
+      "enum": ["fetch_company_evidence", "discover_people", "fetch_registry_record"]
+    },
+    "status": { "type": "string", "enum": ["succeeded", "failed"] },
+    "error": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message", "retryable"],
+          "properties": {
+            "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]{2,63}$" },
+            "message": { "type": "string", "maxLength": 500 },
+            "retryable": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["request_count", "units", "unit_type"],
+      "properties": {
+        "request_count": { "type": "integer", "minimum": 0, "maximum": 10000 },
+        "units": { "type": "number", "minimum": 0 },
+        "unit_type": { "type": "string", "minLength": 1, "maxLength": 50 }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "source_url",
+          "fetched_at",
+          "published_at",
+          "content_type",
+          "content_hash",
+          "excerpt",
+          "normalized_content",
+          "license_metadata"
+        ],
+        "properties": {
+          "ref": { "$ref": "#/$defs/ref" },
+          "source_url": { "type": "string", "pattern": "^https?://", "maxLength": 2048 },
+          "fetched_at": { "type": "string", "format": "date-time" },
+          "published_at": { "type": ["string", "null"], "format": "date-time" },
+          "content_type": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "content_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+          "excerpt": { "type": "string", "maxLength": 2000 },
+          "normalized_content": { "type": "object" },
+          "license_metadata": { "type": "object" }
+        }
+      }
+    },
+    "company_claims": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["predicate", "value", "claim_type", "confidence", "evidence_refs"],
+        "properties": {
+          "predicate": {
+            "type": "string",
+            "enum": [
+              "canonical_name",
+              "description",
+              "industry",
+              "country_code",
+              "employee_band",
+              "registry_identifier",
+              "alias"
+            ]
+          },
+          "value": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "claim_type": { "$ref": "#/$defs/sourcedClaimType" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "evidence_refs": { "$ref": "#/$defs/refs" }
+        }
+      }
+    },
+    "people": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "full_name",
+          "title",
+          "department",
+          "seniority",
+          "public_profile_url",
+          "claim_type",
+          "confidence",
+          "evidence_refs"
+        ],
+        "properties": {
+          "ref": { "$ref": "#/$defs/ref" },
+          "full_name": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "title": { "type": ["string", "null"], "maxLength": 200 },
+          "department": { "type": ["string", "null"], "maxLength": 100 },
+          "seniority": {
+            "type": ["string", "null"],
+            "enum": ["executive", "vp", "director", "manager", "individual_contributor", null]
+          },
+          "public_profile_url": { "type": ["string", "null"], "pattern": "^https?://" },
+          "claim_type": { "$ref": "#/$defs/sourcedClaimType" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "evidence_refs": { "$ref": "#/$defs/refs" }
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "subject_ref",
+          "predicate",
+          "object_ref",
+          "status",
+          "claim_type",
+          "confidence",
+          "rationale",
+          "evidence_refs"
+        ],
+        "properties": {
+          "subject_ref": { "$ref": "#/$defs/ref" },
+          "predicate": {
+            "type": "string",
+            "enum": ["REPORTS_TO", "INFLUENCES", "DECIDES_FOR", "WORKS_WITH"]
+          },
+          "object_ref": { "$ref": "#/$defs/ref" },
+          "status": { "type": "string", "enum": ["verified", "inferred"] },
+          "claim_type": {
+            "type": "string",
+            "enum": ["source_fact", "provider_fact", "model_inference"]
+          },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "rationale": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "evidence_refs": { "$ref": "#/$defs/refs" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "claim_type": { "const": "model_inference" } } },
+            "then": { "properties": { "status": { "const": "inferred" } } }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "ref": { "type": "string", "pattern": "^[a-z][a-z0-9_-]{0,63}$" },
+    "refs": { "type": "array", "minItems": 1, "maxItems": 20, "items": { "$ref": "#/$defs/ref" } },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "sourcedClaimType": { "type": "string", "enum": ["source_fact", "provider_fact"] }
+  }
+}
