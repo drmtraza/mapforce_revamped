@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/lead.schema.json",
+  "title": "Evidence-backed B2B Lead",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["person_id", "company_id", "name", "role", "contact_status", "claims", "review_status"],
+  "properties": {
+    "person_id": {"type": "string", "minLength": 1},
+    "company_id": {"type": "string", "minLength": 1},
+    "name": {"type": "string", "minLength": 1},
+    "role": {"type": ["string", "null"]},
+    "department": {"type": ["string", "null"]},
+    "public_profile_url": {"type": ["string", "null"], "format": "uri"},
+    "work_email": {"type": ["string", "null"], "format": "email"},
+    "contact_status": {
+      "type": "string",
+      "enum": ["unverified", "provider_verified", "deliverable_likely", "invalid", "catch_all", "unknown", "suppressed"]
+    },
+    "contact_verification_method": {"type": ["string", "null"]},
+    "last_verified_at": {"type": ["string", "null"], "format": "date-time"},
+    "persona": {
+      "type": "string",
+      "enum": ["economic_buyer", "functional_champion", "technical_evaluator", "operational_user", "procurement", "unknown"]
+    },
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+    "claims": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "claim_type", "evidence_ids"],
+        "properties": {
+          "field": {"type": "string"},
+          "claim_type": {"type": "string", "enum": ["source_fact", "provider_fact", "model_inference", "user_assertion", "unknown"]},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "rationale": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "review_status": {"type": "string", "enum": ["unreviewed", "accepted", "rejected", "disputed"]}
+  }
+}

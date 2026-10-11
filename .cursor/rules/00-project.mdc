@@ -1,0 +1,22 @@
+---
+description: Persistent engineering rules for the B2B Lead Intelligence SaaS
+alwaysApply: true
+---
+- Read `README.md` and relevant `docs/` before implementing a feature.
+- Do not silently change architecture decisions, schemas, API contracts or product scope.
+- Implement small vertical slices and run checks after each change.
+- Treat PostgreSQL as canonical truth; search and graph stores are derived projections.
+- Enforce tenant authorization at every service boundary and test cross-tenant access.
+- Every sourced company/person/contact/signal claim must have provenance.
+- Label model inference distinctly from source/provider facts.
+- Do not invent source citations, current roles, reporting lines, email addresses or buying intent.
+- Use provider adapters and deterministic mocks. No credentials are required for local development.
+- Do not implement anti-bot evasion, CAPTCHA bypass or unauthorized authenticated scraping.
+- Do not use direct SMTP recipient probing as the default email verification method.
+- Suppression overrides all scoring, export and outreach behavior.
+- Do not send outreach automatically. Generate drafts for human review.
+- Bound retries, pages, tokens, provider spend, job duration and concurrency.
+- Validate all AI/provider outputs against schemas before persistence.
+- Keep API contracts versioned and document breaking changes.
+- Do not claim production readiness or scale capacity without test evidence.
+- Never commit secrets, real contact data, production logs or private source dumps.

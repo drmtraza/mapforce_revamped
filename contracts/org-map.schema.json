@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/schemas/org-map.schema.json",
+  "title": "Evidence-backed Organization Map",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["company_id", "people", "relationships", "unknowns", "conflicts"],
+  "properties": {
+    "company_id": {"type": "string", "minLength": 1},
+    "people": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["person_id", "persona", "confidence", "evidence_ids"],
+        "properties": {
+          "person_id": {"type": "string"},
+          "canonical_title": {"type": ["string", "null"]},
+          "persona": {"type": "string", "enum": ["economic_buyer", "functional_champion", "technical_evaluator", "operational_user", "procurement", "unknown"]},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}},
+          "outreach_angle": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subject_person_id", "predicate", "object_person_id", "status", "confidence", "evidence_ids"],
+        "properties": {
+          "subject_person_id": {"type": "string"},
+          "predicate": {"type": "string", "enum": ["REPORTS_TO", "INFLUENCES", "DECIDES_FOR", "WORKS_WITH"]},
+          "object_person_id": {"type": "string"},
+          "status": {"type": "string", "enum": ["verified", "inferred", "disputed"]},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "evidence_ids": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "unknowns": {"type": "array", "items": {"type": "string"}},
+    "conflicts": {"type": "array", "items": {"type": "string"}}
+  }
+}
