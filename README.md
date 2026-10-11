@@ -9,6 +9,23 @@ Discover target organizations from permitted public sources and licensed provide
 ### Scale objective
 Design for 1,000,000 registered users and 10,000 concurrent users. These are design targets, not proof of capacity. They must be validated through workload modelling, production-like load tests, and staged capacity reviews.
 
+### Running the platform locally (Phase 1)
+Requirements: Docker, Node.js ≥ 22.18 with Corepack, and `uv` (only to run the Python worker's checks outside Docker). No provider credentials are needed; all data is synthetic.
+
+```bash
+corepack enable && pnpm install
+cp .env.example .env                 # local placeholders only
+pnpm infra:up                        # Postgres, Redis, Temporal, RustFS, Keycloak, research worker
+pnpm db:migrate
+pnpm --filter @mapforce/api dev      # API on :4000
+pnpm --filter @mapforce/api worker   # control worker + outbox relay
+pnpm --filter @mapforce/web dev      # UI on http://localhost:3000
+```
+
+Sign in with the synthetic users `alice@tenant-a.test` / `alice-local-only` or `bob@tenant-b.test` / `bob-local-only` (dev realm only). If default host ports clash with other services, export `POSTGRES_HOST_PORT`, `REDIS_HOST_PORT`, `S3_HOST_PORT` etc. before `pnpm infra:up` and adjust the URLs in `.env`.
+
+Checks: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm test:integration` (Docker required), `pnpm --filter @mapforce/web test:e2e` (against the running stack), and in `workers/research`: `uv run ruff check . && uv run mypy && uv run pytest`. Phase status and evidence: `docs/PHASE_1_REPORT.md`.
+
 ### Artifact map
 - `prompts/MASTER_CURSOR_PROMPT.md` — paste into Cursor as the project-level execution brief.
 - `docs/PRODUCT_REQUIREMENTS.md` — personas, scope, workflows, functional requirements and acceptance criteria.

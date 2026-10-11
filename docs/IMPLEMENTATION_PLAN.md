@@ -224,6 +224,8 @@ CSV import, real crawler, real providers, AI/LLM, scoring beyond none, CRM, expo
 
 Migrations are forward-only SQL with documented rollback/forward-fix notes; each runs in CI against a fresh Postgres and against the previous release's schema.
 
+> **As built in Phase 1:** tables are grouped into migrations 0001–0009 with RLS defined alongside each table, and `idempotency_keys` was dropped. See `PHASE_1_REPORT.md` §4 and §6 for the as-built sequence and all deviations (including RustFS replacing MinIO). Rows below 0009 remain the forward plan and will be renumbered when implemented.
+
 | # | Migration | Phase |
 |---|---|---|
 | 0001 | extensions (`pgcrypto`, `citext`), app roles (`app_rw` without BYPASSRLS, `migrator`), `set_tenant()` helper | 1 |
@@ -314,3 +316,5 @@ Phases 2–7: acceptance criteria are the roadmap exit criteria (§6) plus PRD �
 ## 13. Next step
 
 Owner reviews §3 and §4. On approval of D1–D8 and D11, implementation of Phase 1 begins on `phase-1/foundation-vertical-slice` in small commits, each followed by format/lint/typecheck/test runs with results reported verbatim.
+
+**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md` for verification evidence, acceptance-criteria status, deviations and open risks. Phase 2 starts only after owner review of that report.
