@@ -1,0 +1,166 @@
+name: ci
+
+on:
+  push:
+    branches: [main, 'phase-*/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '24.11.0'
+
+jobs:
+  static:
+    name: Format, lint, typecheck, unit, contract drift
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm --filter @mapforce/contracts --filter @mapforce/api test
+      - name: OpenAPI and generated client are up to date
+        run: |
+          pnpm --filter @mapforce/api openapi
+          pnpm --filter @mapforce/web gen:api
+          git diff --exit-code -- contracts/openapi.v1.json apps/web/src/lib/api-types.ts
+      - run: pnpm --filter @mapforce/web build
+
+  integration:
+    name: Integration (Postgres + Temporal testcontainers)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:integration
+
+  python:
+    name: Research worker (ruff, mypy, pytest)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: workers/research
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: '0.11.21'
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy
+      - run: uv run pytest -q
+
+  security:
+    name: Secret scan and dependency audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.30.1 git /repo --redact --no-banner
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: pnpm audit --prod --audit-level high
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          version: '0.11.21'
+      - name: pip-audit (research worker)
+        working-directory: workers/research
+        run: |
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt -o /tmp/req.txt
+          uvx pip-audit@2.10.0 -r /tmp/req.txt --disable-pip
+
+  images:
+    name: Build and scan images
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            context: .
+            file: apps/api/Dockerfile
+          - name: web
+            context: .
+            file: apps/web/Dockerfile
+          - name: research-worker
+            context: workers/research
+            file: workers/research/Dockerfile
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: docker build -f ${{ matrix.file }} -t mapforce-${{ matrix.name }}:${{ github.sha }} ${{ matrix.context }}
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: mapforce-${{ matrix.name }}:${{ github.sha }}
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: '1'
+
+  e2e:
+    name: End-to-end journey (compose stack + Playwright + axe)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    needs: [static]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: cp .env.example .env
+      - run: pnpm infra:up
+        timeout-minutes: 15
+      - run: pnpm db:migrate
+      - run: pnpm --filter @mapforce/web build
+      - name: Start API, control worker and web
+        run: |
+          (cd apps/api && node --env-file=../../.env src/server.ts > /tmp/api.log 2>&1 &)
+          (cd apps/api && node --env-file=../../.env src/temporal/worker-main.ts > /tmp/worker.log 2>&1 &)
+          (cd apps/web && pnpm start > /tmp/web.log 2>&1 &)
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:4000/readyz && curl -sf -o /dev/null http://localhost:3000/login && exit 0
+            sleep 2
+          done
+          cat /tmp/api.log /tmp/worker.log /tmp/web.log
+          exit 1
+      - run: pnpm --filter @mapforce/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @mapforce/web test:e2e
+      - name: Service logs
+        if: failure()
+        run: |
+          cat /tmp/api.log /tmp/worker.log /tmp/web.log || true
+          docker compose -f infra/compose/docker-compose.yml logs --no-color --tail 200 || true
+      - uses: actions/upload-artifact@v7.0.2
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
