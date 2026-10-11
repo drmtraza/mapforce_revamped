@@ -3,6 +3,9 @@ import type { AdapterOperation, AdapterResult } from '@mapforce/contracts';
 export interface SourcePlan {
   sourceKey: string;
   operation: AdapterOperation;
+  /** Per-source caps; fall back to the job-level budget when absent. */
+  maxEvidence?: number;
+  maxRecords?: number;
 }
 
 export interface ResearchWorkflowInput {
@@ -17,10 +20,26 @@ export interface ResearchWorkflowInput {
   budget: { maxRecordsPerSource: number; maxEvidencePerSource: number };
 }
 
+export interface DiscoveryQuery {
+  text: string;
+  country_codes: string[];
+}
+
+export interface DiscoveryWorkflowInput {
+  tenantId: string;
+  jobId: string;
+  correlationId: string;
+  pythonTaskQueue: string;
+  query: DiscoveryQuery;
+  sources: SourcePlan[];
+  budget: { maxRecordsPerSource: number; maxEvidencePerSource: number };
+}
+
 export interface AdapterRequest {
   source_key: string;
   operation: AdapterOperation;
-  company: { domain: string; name: string };
+  company?: { domain: string; name: string };
+  query?: DiscoveryQuery;
   budget: { max_records: number; max_evidence: number };
   correlation_id: string;
 }
@@ -51,8 +70,9 @@ export interface PythonActivities {
   run_adapter(request: AdapterRequest): Promise<AdapterInvocation>;
 }
 
-export const DEFAULT_SOURCES: SourcePlan[] = [
-  { sourceKey: 'mock_web', operation: 'fetch_company_evidence' },
-  { sourceKey: 'mock_registry', operation: 'fetch_registry_record' },
-  { sourceKey: 'mock_people', operation: 'discover_people' },
+export const RESEARCH_OPERATIONS: readonly AdapterOperation[] = [
+  'fetch_company_evidence',
+  'fetch_registry_record',
+  'discover_people',
 ];
+export const DISCOVERY_OPERATIONS: readonly AdapterOperation[] = ['discover_companies'];

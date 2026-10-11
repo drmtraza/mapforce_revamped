@@ -50,6 +50,7 @@ const ConfigSchema = z
     RESEARCH_PYTHON_TASK_QUEUE: z.string().default('research-python'),
 
     TENANT_DAILY_RESEARCH_JOB_LIMIT: z.coerce.number().int().min(1).max(100_000).default(100),
+    TENANT_DAILY_CRAWL_PAGE_LIMIT: z.coerce.number().int().min(0).max(1_000_000).default(200),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(100_000).default(300),
     FEATURE_MOCK_PROVIDERS: z
       .enum(['true', 'false'])

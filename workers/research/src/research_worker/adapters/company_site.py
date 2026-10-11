@@ -29,6 +29,7 @@ from .base import AdapterFailure, BaseAdapter, report_progress, require_company
 
 HTML_TYPES = frozenset({"text/html", "application/xhtml+xml"})
 REDIRECT_CODES = frozenset({301, 302, 303, 307, 308})
+HEARTBEAT_SLICE_SECONDS = 5.0
 PRIORITY_KEYWORDS = (
     "about",
     "company",
@@ -154,9 +155,10 @@ class _Crawl:
 
     async def _throttle(self) -> None:
         if self.last_request is not None:
-            wait = self.last_request + self.delay - self.a._clock()
-            if wait > 0:
-                await self.a._sleep(wait)
+            # Sleep in short slices so heartbeats keep flowing during long Crawl-delays.
+            while (wait := self.last_request + self.delay - self.a._clock()) > 0:
+                await self.a._sleep(min(wait, HEARTBEAT_SLICE_SECONDS))
+                report_progress(waiting_seconds=round(max(wait - HEARTBEAT_SLICE_SECONDS, 0), 1))
         self.last_request = self.a._clock()
 
     async def _get(self, url: URL, max_bytes: int, *, robots_check: bool) -> _Response:

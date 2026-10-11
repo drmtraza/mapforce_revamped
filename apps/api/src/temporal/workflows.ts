@@ -8,6 +8,9 @@ import {
 } from '@temporalio/workflow';
 import type { ControlActivities } from './activities.ts';
 import type {
+  AdapterInvocation,
+  AdapterRequest,
+  DiscoveryWorkflowInput,
   PythonActivities,
   ResearchWorkflowInput,
   ResearchWorkflowResult,
@@ -50,24 +53,34 @@ function describeFailure(err: unknown): { code: string; message: string; attempt
   return { code: 'ADAPTER_ERROR', message: 'Adapter failed.', attempts };
 }
 
+function pythonActivities(taskQueue: string): PythonActivities {
+  return proxyActivities<PythonActivities>({
+    taskQueue,
+    startToCloseTimeout: '1 minute',
+    scheduleToCloseTimeout: '5 minutes',
+    // Adapters heartbeat while working; a silent worker is retried and cancellation is delivered.
+    heartbeatTimeout: '20 seconds',
+    retry: {
+      maximumAttempts: ADAPTER_MAX_ATTEMPTS,
+      initialInterval: '2s',
+      backoffCoefficient: 2,
+      maximumInterval: '20s',
+    },
+  });
+}
+
+type JobRef = { tenantId: string; jobId: string; correlationId: string };
+
 async function runSource(
-  input: ResearchWorkflowInput,
+  ref: JobRef,
   source: SourcePlan,
+  request: AdapterRequest,
   python: PythonActivities,
+  persist: (invocation: AdapterInvocation) => Promise<SourceOutcome>,
 ): Promise<SourceOutcome> {
-  const ref = { tenantId: input.tenantId, jobId: input.jobId, correlationId: input.correlationId };
   let invocation;
   try {
-    invocation = await python.run_adapter({
-      source_key: source.sourceKey,
-      operation: source.operation,
-      company: { domain: input.domain, name: input.companyName },
-      budget: {
-        max_records: input.budget.maxRecordsPerSource,
-        max_evidence: input.budget.maxEvidencePerSource,
-      },
-      correlation_id: input.correlationId,
-    });
+    invocation = await python.run_adapter(request);
   } catch (err) {
     if (isCancellation(err)) throw err;
     const failure = describeFailure(err);
@@ -79,13 +92,38 @@ async function runSource(
       errorSummary: failure.message,
     });
   }
-  return control.persistSourceResult({
-    ...ref,
-    companyId: input.companyId,
-    sourceKey: source.sourceKey,
-    attempts: invocation.attempt,
-    result: invocation.result,
-  });
+  return persist(invocation);
+}
+
+async function runJob(
+  ref: JobRef,
+  run: () => Promise<SourceOutcome[]>,
+): Promise<ResearchWorkflowResult> {
+  const start = await control.markJobRunning(ref);
+  if (!start.proceed) {
+    return { status: start.status === 'cancelled' ? 'cancelled' : 'failed', sources: [] };
+  }
+  try {
+    const outcomes = await run();
+    return await control.finalizeJob({ ...ref, outcomes, cancelled: false });
+  } catch (err) {
+    if (isCancellation(err)) {
+      return CancellationScope.nonCancellable(() =>
+        control.finalizeJob({ ...ref, outcomes: [], cancelled: true }),
+      );
+    }
+    throw err;
+  }
+}
+
+function budgetFor(
+  source: SourcePlan,
+  budget: { maxRecordsPerSource: number; maxEvidencePerSource: number },
+) {
+  return {
+    max_records: source.maxRecords ?? budget.maxRecordsPerSource,
+    max_evidence: source.maxEvidence ?? budget.maxEvidencePerSource,
+  };
 }
 
 /**
@@ -96,32 +134,64 @@ export async function researchCompanyWorkflow(
   input: ResearchWorkflowInput,
 ): Promise<ResearchWorkflowResult> {
   const ref = { tenantId: input.tenantId, jobId: input.jobId, correlationId: input.correlationId };
-  const start = await control.markJobRunning(ref);
-  if (!start.proceed) {
-    return { status: start.status === 'cancelled' ? 'cancelled' : 'failed', sources: [] };
-  }
+  const python = pythonActivities(input.pythonTaskQueue);
+  return runJob(ref, () =>
+    Promise.all(
+      input.sources.map((s) =>
+        runSource(
+          ref,
+          s,
+          {
+            source_key: s.sourceKey,
+            operation: s.operation,
+            company: { domain: input.domain, name: input.companyName },
+            budget: budgetFor(s, input.budget),
+            correlation_id: input.correlationId,
+          },
+          python,
+          (invocation) =>
+            control.persistSourceResult({
+              ...ref,
+              companyId: input.companyId,
+              sourceKey: s.sourceKey,
+              attempts: invocation.attempt,
+              result: invocation.result,
+            }),
+        ),
+      ),
+    ),
+  );
+}
 
-  const python = proxyActivities<PythonActivities>({
-    taskQueue: input.pythonTaskQueue,
-    startToCloseTimeout: '1 minute',
-    scheduleToCloseTimeout: '5 minutes',
-    retry: {
-      maximumAttempts: ADAPTER_MAX_ATTEMPTS,
-      initialInterval: '2s',
-      backoffCoefficient: 2,
-      maximumInterval: '20s',
-    },
-  });
-
-  try {
-    const outcomes = await Promise.all(input.sources.map((s) => runSource(input, s, python)));
-    return await control.finalizeJob({ ...ref, outcomes, cancelled: false });
-  } catch (err) {
-    if (isCancellation(err)) {
-      return CancellationScope.nonCancellable(() =>
-        control.finalizeJob({ ...ref, outcomes: [], cancelled: true }),
-      );
-    }
-    throw err;
-  }
+/** Searches discovery sources for candidate companies; candidates are reviewed by a person. */
+export async function discoverCompaniesWorkflow(
+  input: DiscoveryWorkflowInput,
+): Promise<ResearchWorkflowResult> {
+  const ref = { tenantId: input.tenantId, jobId: input.jobId, correlationId: input.correlationId };
+  const python = pythonActivities(input.pythonTaskQueue);
+  return runJob(ref, () =>
+    Promise.all(
+      input.sources.map((s) =>
+        runSource(
+          ref,
+          s,
+          {
+            source_key: s.sourceKey,
+            operation: s.operation,
+            query: input.query,
+            budget: budgetFor(s, input.budget),
+            correlation_id: input.correlationId,
+          },
+          python,
+          (invocation) =>
+            control.persistDiscoveryResult({
+              ...ref,
+              sourceKey: s.sourceKey,
+              attempts: invocation.attempt,
+              result: invocation.result,
+            }),
+        ),
+      ),
+    ),
+  );
 }

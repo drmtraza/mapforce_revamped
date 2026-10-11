@@ -15,6 +15,7 @@ from aiohttp.abc import AbstractResolver, ResolveResult
 from aiohttp.test_utils import TestServer
 
 from research_worker.adapters import AdapterFailure
+from research_worker.adapters.base import set_progress_reporter
 from research_worker.adapters.company_site import CompanySiteAdapter, CrawlerSettings
 from research_worker.models import AdapterRequest
 from research_worker.net import PublicOnlyResolver
@@ -243,6 +244,22 @@ async def test_crawl_delay_is_honoured(site: tuple[Site, TestServer]) -> None:
     clock = FakeClock()
     await adapter(server, clock, time_budget_seconds=100).run(req())
     assert clock.sleeps and min(clock.sleeps) >= 5
+
+
+async def test_long_crawl_delay_keeps_heartbeating(site: tuple[Site, TestServer]) -> None:
+    state, server = site
+    state.robots = (200, "User-agent: *\nCrawl-delay: 12\n")
+    state.pages = {"/": html(HOME), "/about": html(html_page("About", "x"))}
+    clock = FakeClock()
+    progress: list[dict[str, Any]] = []
+    set_progress_reporter(progress.append)
+    try:
+        await adapter(server, clock, time_budget_seconds=100).run(req())
+    finally:
+        set_progress_reporter(None)
+    assert max(clock.sleeps) <= 5
+    assert sum(clock.sleeps) >= 12
+    assert sum(1 for p in progress if "waiting_seconds" in p) >= 3
 
 
 async def test_time_budget_limits_pages(site: tuple[Site, TestServer]) -> None:

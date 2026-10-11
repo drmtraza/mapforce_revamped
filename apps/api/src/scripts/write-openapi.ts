@@ -33,7 +33,7 @@ const app = await buildApp({
   db,
   storage,
   idp: { createLogin: unavailable, completeLogin: unavailable },
-  dispatcher: { start: unavailable, cancel: unavailable },
+  dispatcher: { start: unavailable, startDiscovery: unavailable, cancel: unavailable },
   logger: false,
 });
 await app.ready();

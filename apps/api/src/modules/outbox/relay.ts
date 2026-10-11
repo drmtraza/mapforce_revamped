@@ -1,7 +1,7 @@
 import type { Logger } from 'pino';
 import type { Db } from '@mapforce/db';
 import type { ResearchDispatcher } from '../../temporal/dispatcher.ts';
-import type { ResearchWorkflowInput } from '../../temporal/types.ts';
+import type { DiscoveryWorkflowInput, ResearchWorkflowInput } from '../../temporal/types.ts';
 
 export const MAX_DELIVERY_ATTEMPTS = 10;
 const MAX_BACKOFF_MS = 5 * 60_000;
@@ -23,6 +23,11 @@ function handlers(dispatcher: ResearchDispatcher): Partial<Record<string, Handle
       const input = payload.workflow_input as ResearchWorkflowInput | undefined;
       if (!input?.jobId || !input.tenantId) throw new Error('workflow_input missing from payload');
       await dispatcher.start(input);
+    },
+    'discovery.search.requested': async (payload) => {
+      const input = payload.workflow_input as DiscoveryWorkflowInput | undefined;
+      if (!input?.jobId || !input.tenantId) throw new Error('workflow_input missing from payload');
+      await dispatcher.startDiscovery(input);
     },
   };
 }

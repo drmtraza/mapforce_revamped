@@ -29,6 +29,10 @@ import { researchRoutes } from './modules/research/routes.ts';
 import { peopleRoutes } from './modules/people/routes.ts';
 import { orgMapRoutes } from './modules/orgmap/routes.ts';
 import { auditRoutes } from './modules/audit/routes.ts';
+import { sourceRoutes } from './modules/sources/routes.ts';
+import { discoveryRoutes } from './modules/discovery/routes.ts';
+import { importRoutes } from './modules/imports/routes.ts';
+import { deadLetterRoutes } from './modules/outbox/routes.ts';
 
 export interface AppDeps {
   config: Config;
@@ -148,6 +152,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(peopleRoutes(deps));
       await v1.register(orgMapRoutes(deps));
       await v1.register(auditRoutes(deps));
+      await v1.register(sourceRoutes(deps));
+      await v1.register(discoveryRoutes(deps));
+      await v1.register(importRoutes(deps));
+      await v1.register(deadLetterRoutes(deps));
     },
     { prefix: '/api/v1' },
   );

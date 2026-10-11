@@ -6,7 +6,10 @@ export type EventType =
   | 'discovery.source.completed'
   | 'crawl.evidence.created'
   | 'person.candidate.discovered'
-  | 'research.job.completed';
+  | 'research.job.completed'
+  | 'discovery.search.requested'
+  | 'discovery.job.completed'
+  | 'company.import.completed';
 
 export interface OutboxInput {
   tenantId: string;

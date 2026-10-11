@@ -7,12 +7,40 @@ import { AppError, notFound } from '../../errors.ts';
 import { requireTenant, type TenantCtx } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
 import { loadCompany } from '../companies/routes.ts';
+import {
+  ACTIVE_JOB_STATUSES as ACTIVE,
+  dailyJobQuotaExceeded,
+  isUniqueViolation,
+  parseIdempotencyKey,
+} from '../jobs/service.ts';
 import { enqueueEvent } from '../outbox/service.ts';
-import { DEFAULT_SOURCES, type ResearchWorkflowInput } from '../../temporal/types.ts';
+import { planSources, type PlannedSources } from '../sources/service.ts';
+import { RESEARCH_OPERATIONS, type ResearchWorkflowInput } from '../../temporal/types.ts';
 import { researchWorkflowId } from '../../temporal/dispatcher.ts';
 
-const ACTIVE = ['queued', 'running', 'cancel_requested'] as const;
-const IDEMPOTENCY_KEY = /^[A-Za-z0-9._:-]{8,200}$/;
+/** Planned sources start `pending`; budget-skipped ones are recorded so users see why. */
+export async function insertJobSources(
+  trx: Tx,
+  tenantId: string,
+  jobId: string,
+  plan: PlannedSources,
+) {
+  await trx
+    .insertInto('workflow_job_sources')
+    .values([
+      ...plan.run.map((s) => ({ job_id: jobId, tenant_id: tenantId, source_key: s.sourceKey })),
+      ...plan.skipped.map((s) => ({
+        job_id: jobId,
+        tenant_id: tenantId,
+        source_key: s.sourceKey,
+        status: 'skipped' as const,
+        error_code: s.errorCode,
+        error_summary: s.errorSummary,
+        finished_at: new Date(),
+      })),
+    ])
+    .execute();
+}
 
 const Job = z.object({
   id: z.string(),
@@ -66,10 +94,6 @@ async function loadJob(trx: Tx, tenantId: string, id: string) {
   return { ...job, company_id: job.company_id };
 }
 
-function isUniqueViolation(err: unknown): boolean {
-  return typeof err === 'object' && err !== null && (err as { code?: string }).code === '23505';
-}
-
 export const researchRoutes =
   (deps: AppDeps): FastifyPluginAsyncZod =>
   async (app) => {
@@ -99,14 +123,7 @@ export const researchRoutes =
       },
       async (request, reply) => {
         const ctx = await requireTenant(db, request, 'research.start');
-        if (!config.FEATURE_MOCK_PROVIDERS) {
-          throw new AppError('FEATURE_DISABLED', 'No research providers are enabled.');
-        }
-        const header = request.headers['idempotency-key'];
-        if (header !== undefined && (typeof header !== 'string' || !IDEMPOTENCY_KEY.test(header))) {
-          throw new AppError('VALIDATION_ERROR', 'Invalid Idempotency-Key header.');
-        }
-        const key = header ?? null;
+        const key = parseIdempotencyKey(request.headers['idempotency-key']);
         const companyId = request.params.id;
 
         const create = () =>
@@ -115,24 +132,19 @@ export const researchRoutes =
             const reusable = await findReusableJob(trx, ctx, companyId, key);
             if (reusable) return reusable;
 
-            const today = await trx
-              .selectFrom('workflow_jobs')
-              .select((eb) => eb.fn.countAll<string>().as('n'))
-              .where('tenant_id', '=', ctx.tenantId)
-              .where('created_at', '>=', new Date(Date.now() - 86_400_000))
-              .executeTakeFirstOrThrow();
-            if (Number(today.n) >= config.TENANT_DAILY_RESEARCH_JOB_LIMIT) {
-              await recordAudit(trx, {
-                tenantId: ctx.tenantId,
-                actorUserId: ctx.userId,
-                action: 'research.quota_exceeded',
-                entityType: 'company',
-                entityId: companyId,
-                outcome: 'denied',
-                correlationId: ctx.correlationId,
-              });
-              return { quotaExceeded: true as const };
-            }
+            const quotaExceeded = await dailyJobQuotaExceeded(
+              trx,
+              ctx,
+              config.TENANT_DAILY_RESEARCH_JOB_LIMIT,
+              { action: 'research.quota_exceeded', type: 'company', id: companyId },
+            );
+            if (quotaExceeded) return { quotaExceeded: true as const };
+
+            const plan = await planSources(trx, ctx.tenantId, config, RESEARCH_OPERATIONS, {
+              maxEvidence: 10,
+              maxRecords: 25,
+            });
+            if (plan.run.length === 0) return { noSources: true as const };
 
             const jobId = randomUUID();
             const input: ResearchWorkflowInput = {
@@ -143,7 +155,7 @@ export const researchRoutes =
               companyName: company.canonical_name as string,
               correlationId: ctx.correlationId,
               pythonTaskQueue: config.RESEARCH_PYTHON_TASK_QUEUE,
-              sources: DEFAULT_SOURCES,
+              sources: plan.run,
               budget: { maxRecordsPerSource: 25, maxEvidencePerSource: 10 },
             };
             await trx
@@ -159,16 +171,7 @@ export const researchRoutes =
                 temporal_workflow_id: researchWorkflowId(jobId),
               })
               .execute();
-            await trx
-              .insertInto('workflow_job_sources')
-              .values(
-                input.sources.map((s) => ({
-                  job_id: jobId,
-                  tenant_id: ctx.tenantId,
-                  source_key: s.sourceKey,
-                })),
-              )
-              .execute();
+            await insertJobSources(trx, ctx.tenantId, jobId, plan);
             await enqueueEvent(trx, {
               tenantId: ctx.tenantId,
               eventType: 'research.company.requested',
@@ -183,7 +186,11 @@ export const researchRoutes =
               entityType: 'research_job',
               entityId: jobId,
               correlationId: ctx.correlationId,
-              metadata: { company_id: companyId, sources: input.sources.map((s) => s.sourceKey) },
+              metadata: {
+                company_id: companyId,
+                sources: input.sources.map((s) => s.sourceKey),
+                skipped: plan.skipped.map((s) => s.sourceKey),
+              },
             });
             return { id: jobId, status: 'queued' };
           });
@@ -200,6 +207,12 @@ export const researchRoutes =
           throw new AppError(
             'QUOTA_EXCEEDED',
             'Daily research job limit reached for this workspace.',
+          );
+        }
+        if ('noSources' in result) {
+          throw new AppError(
+            'FEATURE_DISABLED',
+            'No research sources are available for this workspace.',
           );
         }
         return reply.status(202).send(accepted(result.id, result.status));

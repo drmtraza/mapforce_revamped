@@ -1110,6 +1110,770 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                provider_name: string;
+                                source_type: string;
+                                description: string;
+                                operations: string[];
+                                terms_reference: string;
+                                is_mock: boolean;
+                                requires_credentials: boolean;
+                                globally_enabled: boolean;
+                                tenant_enabled: boolean;
+                                /** @enum {string} */
+                                tenant_setting: "default" | "enabled" | "disabled";
+                                available: boolean;
+                                unavailable_reason: string | null;
+                                freshness_ttl_hours: number;
+                                retention_days: number;
+                                max_requests_per_job: number;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/sources/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            provider_name: string;
+                            source_type: string;
+                            description: string;
+                            operations: string[];
+                            terms_reference: string;
+                            is_mock: boolean;
+                            requires_credentials: boolean;
+                            globally_enabled: boolean;
+                            tenant_enabled: boolean;
+                            /** @enum {string} */
+                            tenant_setting: "default" | "enabled" | "disabled";
+                            available: boolean;
+                            unavailable_reason: string | null;
+                            freshness_ttl_hours: number;
+                            retention_days: number;
+                            max_requests_per_job: number;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/source-freshness": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                source_key: string;
+                                provider_name: string;
+                                available: boolean;
+                                last_success_at: string | null;
+                                freshness_ttl_hours: number;
+                                stale: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/discovery-searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                status: string;
+                                query: {
+                                    text: string;
+                                    /** @default [] */
+                                    country_codes: string[];
+                                };
+                                created_at: string;
+                                finished_at: string | null;
+                                candidate_count: number;
+                            }[];
+                            has_more: boolean;
+                            next_cursor: string | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        text: string;
+                        /** @default [] */
+                        country_codes?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            job_id: string;
+                            status: string;
+                            status_url: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/discovery-searches/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            status: string;
+                            query: {
+                                text: string;
+                                /** @default [] */
+                                country_codes: string[];
+                            };
+                            created_at: string;
+                            finished_at: string | null;
+                            candidate_count: number;
+                            error_code: string | null;
+                            error_summary: string | null;
+                            sources: {
+                                source_key: string;
+                                status: string;
+                                attempts: number;
+                                evidence_count: number;
+                                error_code: string | null;
+                                error_summary: string | null;
+                                finished_at: string | null;
+                            }[];
+                            candidates: {
+                                id: string;
+                                source_key: string;
+                                name: string;
+                                domain: string;
+                                country_code: string | null;
+                                description: string | null;
+                                /** @enum {string} */
+                                claim_type: "source_fact" | "provider_fact";
+                                confidence: number;
+                                evidence_id: string;
+                                evidence_url: string;
+                                /** @enum {string} */
+                                status: "new" | "accepted" | "dismissed";
+                                company_id: string | null;
+                                existing_company_id: string | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/discovery-searches/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            job_id: string;
+                            status: string;
+                            status_url: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/discovery-candidates/{id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            created: boolean;
+                            company: {
+                                id: string;
+                                canonical_name: string;
+                                primary_domain: string;
+                                country_code: string | null;
+                                industry: string | null;
+                                employee_band: string | null;
+                                description: string | null;
+                                lifecycle_status: string;
+                                version: number;
+                                created_at: string;
+                                updated_at: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/discovery-candidates/{id}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** @enum {string} */
+                            status: "dismissed";
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: {
+                    dry_run?: "true" | "false";
+                    filename?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "text/csv": string;
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            import_id: string | null;
+                            dry_run: boolean;
+                            replayed: boolean;
+                            summary: {
+                                rows: number;
+                                created: number;
+                                existing: number;
+                                duplicate_in_file: number;
+                                invalid: number;
+                            };
+                            ignored_columns: string[];
+                            rows: {
+                                row_number: number;
+                                domain: string | null;
+                                name: string | null;
+                                normalized_domain: string | null;
+                                /** @enum {string} */
+                                outcome: "created" | "existing" | "duplicate_in_file" | "invalid";
+                                error_code: string | null;
+                                error_message: string | null;
+                                company_id: string | null;
+                            }[];
+                            rows_truncated: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            import_id: string | null;
+                            dry_run: boolean;
+                            replayed: boolean;
+                            summary: {
+                                rows: number;
+                                created: number;
+                                existing: number;
+                                duplicate_in_file: number;
+                                invalid: number;
+                            };
+                            ignored_columns: string[];
+                            rows: {
+                                row_number: number;
+                                domain: string | null;
+                                name: string | null;
+                                normalized_domain: string | null;
+                                /** @enum {string} */
+                                outcome: "created" | "existing" | "duplicate_in_file" | "invalid";
+                                error_code: string | null;
+                                error_message: string | null;
+                                company_id: string | null;
+                            }[];
+                            rows_truncated: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                filename: string | null;
+                                content_hash: string;
+                                summary: {
+                                    rows: number;
+                                    created: number;
+                                    existing: number;
+                                    duplicate_in_file: number;
+                                    invalid: number;
+                                };
+                                created_by: string;
+                                created_at: string;
+                            }[];
+                            has_more: boolean;
+                            next_cursor: string | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/imports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    outcome?: "created" | "existing" | "duplicate_in_file" | "invalid";
+                    after_row?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            filename: string | null;
+                            content_hash: string;
+                            summary: {
+                                rows: number;
+                                created: number;
+                                existing: number;
+                                duplicate_in_file: number;
+                                invalid: number;
+                            };
+                            created_by: string;
+                            created_at: string;
+                            rows: {
+                                row_number: number;
+                                domain: string | null;
+                                name: string | null;
+                                normalized_domain: string | null;
+                                /** @enum {string} */
+                                outcome: "created" | "existing" | "duplicate_in_file" | "invalid";
+                                error_code: string | null;
+                                error_message: string | null;
+                                company_id: string | null;
+                            }[];
+                            next_after_row: number | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dead-letters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                event_type: string;
+                                attempts: number;
+                                last_error: string | null;
+                                occurred_at: string;
+                                dead_lettered_at: string;
+                                correlation_id: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/dead-letters/{id}/replay": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** @enum {string} */
+                            status: "requeued";
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

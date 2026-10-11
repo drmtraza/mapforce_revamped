@@ -28,7 +28,6 @@ export interface FailureInput {
 }
 
 const DOMAIN_BOUND_SOURCE_TYPES = new Set(['company_website']);
-const RETENTION_DAYS: Record<string, number> = { retain_90_days: 90, retain_365_days: 365 };
 
 export function normalizePersonName(name: string): string {
   return name
@@ -39,8 +38,15 @@ export function normalizePersonName(name: string): string {
     .trim();
 }
 
-/** Rejects evidence URLs that are not public http(s) resources or that leave the target domain. */
-function checkUrlPolicy(r: AdapterResult, sourceType: string, domain: string): string[] {
+/**
+ * Rejects evidence URLs that are not public http(s) resources, and for domain-bound
+ * sources (company websites) URLs that leave the target domain.
+ */
+export function checkUrlPolicy(
+  r: AdapterResult,
+  sourceType: string,
+  domain: string | null,
+): string[] {
   const errors: string[] = [];
   for (const e of r.evidence) {
     let url: URL;
@@ -50,19 +56,25 @@ function checkUrlPolicy(r: AdapterResult, sourceType: string, domain: string): s
       errors.push(`evidence ${e.ref}: unparsable URL`);
       continue;
     }
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+      errors.push(`evidence ${e.ref}: non-http URL`);
+    }
     if (url.username || url.password) errors.push(`evidence ${e.ref}: URL contains credentials`);
     const host = url.hostname.replace(/^\[|\]$/g, '');
     if (isIP(host) || host === 'localhost' || !host.includes('.')) {
       errors.push(`evidence ${e.ref}: non-public host`);
     }
-    if (DOMAIN_BOUND_SOURCE_TYPES.has(sourceType) && !hostWithinDomain(host, domain)) {
+    if (
+      DOMAIN_BOUND_SOURCE_TYPES.has(sourceType) &&
+      (domain === null || !hostWithinDomain(host, domain))
+    ) {
       errors.push(`evidence ${e.ref}: host outside target domain`);
     }
   }
   return errors;
 }
 
-async function setSourceStatus(
+export async function setSourceStatus(
   trx: Tx,
   input: { tenantId: string; jobId: string; sourceKey: string; attempts: number },
   status: SourceStatus,
@@ -132,7 +144,7 @@ export async function persistSourceResult(
       .executeTakeFirst();
     const source = await trx
       .selectFrom('source_registry')
-      .select(['id', 'source_type', 'enabled', 'retention_policy', 'provider_name'])
+      .select(['id', 'source_type', 'enabled', 'retention_days', 'provider_name', 'operations'])
       .where('id', '=', input.sourceKey)
       .executeTakeFirst();
     return { job, source };
@@ -170,6 +182,13 @@ export async function persistSourceResult(
       errorSummary: 'source_key does not match the requested source.',
     });
   }
+  if (r.operation === 'discover_companies' || !source.operations.includes(r.operation)) {
+    return recordSourceFailure(db, {
+      ...input,
+      errorCode: 'ADAPTER_PAYLOAD_INVALID',
+      errorSummary: `Operation ${r.operation} is not allowed for this source in a research job.`,
+    });
+  }
   if (r.status === 'failed') {
     return recordSourceFailure(db, {
       ...input,
@@ -178,7 +197,7 @@ export async function persistSourceResult(
     });
   }
 
-  const retentionDays = RETENTION_DAYS[source.retention_policy] ?? 90;
+  const retentionDays = source.retention_days;
   const observedAt = new Date();
 
   const counts = await withContext(db, ctx, async (trx) => {

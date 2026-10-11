@@ -142,6 +142,67 @@ export function peopleResult(domain: string): AdapterResult {
   };
 }
 
+export function discoveryResult(query: string): AdapterResult {
+  const names = ['northwind-freight', 'acme', 'contoso-logistics'];
+  return {
+    ...base('mock_search', 'discover_companies'),
+    usage: { request_count: 1, units: 1, unit_type: 'queries' },
+    evidence: [
+      {
+        ref: 'ev-search',
+        source_url: `https://search.mock.example/?q=${encodeURIComponent(query)}`,
+        fetched_at: FETCHED,
+        published_at: null,
+        content_type: 'application/json',
+        content_hash: hash(`search:${query}`),
+        excerpt: names.join('; '),
+        normalized_content: { query, results: names },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    companies: names.map((n, i) => ({
+      ref: `c${i}`,
+      name: `${n.replace(/-/g, ' ')} example`,
+      domain: `${n}.example`,
+      country_code: i === 0 ? 'GB' : null,
+      description: i === 0 ? 'Synthetic freight software.' : null,
+      claim_type: 'provider_fact' as const,
+      confidence: 0.5,
+      evidence_refs: ['ev-search'],
+    })),
+  };
+}
+
+export function siteResult(domain: string, url = `https://${domain}/`): AdapterResult {
+  return {
+    ...base('company_site', 'fetch_company_evidence'),
+    provider: 'company_website',
+    usage: { request_count: 2, units: 1, unit_type: 'pages' },
+    evidence: [
+      {
+        ref: 'ev-p0',
+        source_url: url,
+        fetched_at: FETCHED,
+        published_at: null,
+        content_type: 'text/html',
+        content_hash: hash(`${url}:site`),
+        excerpt: 'Synthetic company home page.',
+        normalized_content: { title: 'Home', text: 'Synthetic company home page.' },
+        license_metadata: { robots_txt: 'allowed' },
+      },
+    ],
+    company_claims: [
+      {
+        predicate: 'description',
+        value: 'Synthetic company home page.',
+        claim_type: 'source_fact',
+        confidence: 0.6,
+        evidence_refs: ['ev-p0'],
+      },
+    ],
+  };
+}
+
 export function registryFailure(): AdapterResult {
   return {
     ...base('mock_registry', 'fetch_registry_record'),

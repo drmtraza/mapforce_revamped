@@ -7,7 +7,7 @@ import { createSession, SESSION_COOKIE, upsertUser } from '../../src/auth/sessio
 import { loadConfig } from '../../src/config.ts';
 import type { EvidenceStorage } from '../../src/modules/evidence/storage.ts';
 import type { ResearchDispatcher } from '../../src/temporal/dispatcher.ts';
-import type { ResearchWorkflowInput } from '../../src/temporal/types.ts';
+import type { DiscoveryWorkflowInput, ResearchWorkflowInput } from '../../src/temporal/types.ts';
 import { baseEnv } from './env.ts';
 
 export class MemoryStorage implements EvidenceStorage {
@@ -34,6 +34,15 @@ export class RecordingDispatcher implements ResearchDispatcher {
     }
     this.started.push(input);
     await this.forward?.start(input);
+  }
+  startedDiscovery: DiscoveryWorkflowInput[] = [];
+  async startDiscovery(input: DiscoveryWorkflowInput) {
+    if (this.failNext > 0) {
+      this.failNext -= 1;
+      throw new Error('temporal unavailable');
+    }
+    this.startedDiscovery.push(input);
+    await this.forward?.startDiscovery(input);
   }
   async cancel(workflowId: string) {
     this.cancelled.push(workflowId);
@@ -116,7 +125,7 @@ export async function signIn(env: TestEnv, subject: string, email: string): Prom
   return { userId, cookie: `${SESSION_COOKIE}=${env.app.signCookie(token)}` };
 }
 
-type Method = 'GET' | 'POST' | 'PATCH';
+type Method = 'GET' | 'POST' | 'PATCH' | 'PUT';
 
 /** Issues an authenticated request as `actor`, scoped to `workspaceId` (or the actor's own). */
 export async function call(

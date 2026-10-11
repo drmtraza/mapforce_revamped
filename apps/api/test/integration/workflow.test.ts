@@ -37,7 +37,7 @@ const slowGate = new Promise<void>((resolve) => {
 /** Stands in for the Python worker: same activity name, queue routing and failure semantics. */
 async function runAdapter(request: AdapterRequest): Promise<AdapterInvocation> {
   adapterCalls.push(request);
-  const { domain } = request.company;
+  const domain = request.company?.domain ?? '';
   if (domain.startsWith('slow.')) await slowGate;
   switch (request.source_key) {
     case 'mock_web':
@@ -133,7 +133,7 @@ describe('research workflow on a real Temporal server', () => {
       error_code: 'SOURCE_UNAVAILABLE',
     });
 
-    const requests = adapterCalls.filter((c) => c.company.domain === 'acme.example');
+    const requests = adapterCalls.filter((c) => c.company?.domain === 'acme.example');
     expect(requests.map((r) => r.source_key).sort()).toEqual([
       'mock_people',
       'mock_registry',
@@ -160,7 +160,7 @@ describe('research workflow on a real Temporal server', () => {
     await handle.result();
     const description = await handle.describe();
     expect(description.status.name).toBe('COMPLETED');
-    expect(adapterCalls.filter((c) => c.company.domain === 'initech.example')).toHaveLength(3);
+    expect(adapterCalls.filter((c) => c.company?.domain === 'initech.example')).toHaveLength(3);
   });
 
   it('cancels a running job through the API and records the cancellation', async () => {

@@ -17,6 +17,14 @@ export function evidenceKey(tenantId: string, companyId: string, evidenceId: str
   return `tenants/${tenantId}/companies/${companyId}/evidence/${evidenceId}.json`;
 }
 
+/** Discovery evidence predates any company record, so it is keyed by the discovery job. */
+export function discoveryEvidenceKey(tenantId: string, jobId: string, evidenceId: string): string {
+  for (const id of [tenantId, jobId, evidenceId]) {
+    if (!UUID.test(id)) throw new Error('discoveryEvidenceKey requires UUID components');
+  }
+  return `tenants/${tenantId}/discovery/${jobId}/evidence/${evidenceId}.json`;
+}
+
 export function keyBelongsToTenant(key: string, tenantId: string): boolean {
   return key.startsWith(`tenants/${tenantId}/`) && !key.includes('..');
 }
