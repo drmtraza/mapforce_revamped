@@ -93,19 +93,6 @@ export interface OutboxEventsTable {
   dead_lettered_at: Timestamp | null;
 }
 
-export interface IdempotencyKeysTable {
-  tenant_id: string;
-  key: string;
-  user_id: string;
-  method: string;
-  route: string;
-  request_hash: string;
-  response_status: number | null;
-  response_body: Json | null;
-  created_at: GeneratedTimestamp;
-  expires_at: Timestamp;
-}
-
 export interface IcpProfilesTable {
   id: Generated<string>;
   tenant_id: string;
@@ -146,6 +133,26 @@ export interface CompaniesTable {
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
   version: Generated<number>;
+}
+
+export interface CompanyAliasesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  alias: string;
+  source_evidence_id: string | null;
+  created_at: GeneratedTimestamp;
+}
+
+export interface CompanyIdentifiersTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  identifier_type: string;
+  identifier_value: string;
+  jurisdiction: string | null;
+  source_evidence_id: string | null;
+  created_at: GeneratedTimestamp;
 }
 
 export interface WorkflowJobsTable {
@@ -327,10 +334,11 @@ export interface Database {
   memberships: MembershipsTable;
   audit_events: AuditEventsTable;
   outbox_events: OutboxEventsTable;
-  idempotency_keys: IdempotencyKeysTable;
   icp_profiles: IcpProfilesTable;
   source_registry: SourceRegistryTable;
   companies: CompaniesTable;
+  company_aliases: CompanyAliasesTable;
+  company_identifiers: CompanyIdentifiersTable;
   workflow_jobs: WorkflowJobsTable;
   workflow_job_sources: WorkflowJobSourcesTable;
   provider_usage: ProviderUsageTable;

@@ -23,6 +23,9 @@ CREATE TABLE workflow_jobs (
   version               integer NOT NULL DEFAULT 1,
   UNIQUE (tenant_id, job_type, idempotency_key)
 );
+-- At most one active research job per company; concurrent submits converge on it.
+CREATE UNIQUE INDEX workflow_jobs_one_active_idx ON workflow_jobs (tenant_id, company_id, job_type)
+  WHERE status IN ('queued', 'running', 'cancel_requested');
 CREATE INDEX workflow_jobs_tenant_company_idx ON workflow_jobs (tenant_id, company_id, created_at DESC);
 CREATE INDEX workflow_jobs_tenant_status_idx ON workflow_jobs (tenant_id, status);
 CREATE INDEX workflow_jobs_tenant_created_idx ON workflow_jobs (tenant_id, created_at);
