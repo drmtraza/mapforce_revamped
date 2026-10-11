@@ -1,6 +1,6 @@
 # Implementation Plan — B2B Lead Intelligence Platform ("Mapforce Revamped")
 
-Status: **DRAFT — awaiting owner approval** (Phase 0 deliverable)
+Status: **APPROVED for Phase 1** on 2026-10-11 (see §4.1 decision log)
 Date: 2026-10-11
 Remote: https://github.com/drmtraza/mapforce_revamped
 
@@ -117,6 +117,17 @@ Recommended option is listed first. Phase 1 can start once D1–D8 and D11 are a
 | D11 | Git branching & push model | See §9: `main` protected; one branch per phase pushed and opened as a PR; merge after review | Push phases directly to `main` | Phase 0 push |
 | D12 | Licensed contact provider + verification provider | Decide after procurement/terms review (Apollo is only an example in docs) | — | Phase 3 (adapter stays disabled) |
 | D13 | Hosting cloud & managed services | Decide by Phase 6 (AWS/GCP/Azure; managed Postgres, Temporal Cloud vs self-host) | — | Phase 6 |
+
+### 4.1 Decision log (owner responses, 2026-10-11)
+| ID | Outcome |
+|---|---|
+| D1, D3, D4, D5, D6 | Approved as recommended: TypeScript + Fastify + Next.js; Temporal; Kysely + SQL migrations + RLS; pnpm monorepo; Python 3.12 workers with uv. |
+| D2 | Approved: Keycloak dev realm locally behind an IdP adapter; production IdP chosen later. |
+| D7 | Approved: all entity tables tenant-private for MVP. |
+| D8 | Approved: `org-map.schema.json` v2 and `GET /evidence/{id}/content-url`. |
+| D10 | Target markets: **United States, United Kingdom, European Union**. Implications: GDPR / UK GDPR + PECR / CAN-SPAM and US state privacy laws (e.g. CCPA/CPRA) drive purpose limitation, legitimate-interest assessment, suppression and deletion; candidate registries for Phase 2/3 evaluation include UK Companies House API, SEC EDGAR, OpenCorporates (licensed), EU national registries; procurement candidates include SAM.gov, UK Contracts Finder / Find a Tender, EU TED. All subject to terms review before enabling. |
+| D11 | Phase branches pushed with a PR into `main`; Phase 1 starts from `phase-0/plan` without waiting for merge. |
+| D9, D12, D13 | Open; required by Phases 4, 3 and 6 respectively. |
 
 ---
 
