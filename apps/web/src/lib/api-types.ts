@@ -3444,7 +3444,9 @@ export interface paths {
                                 enrich: number;
                                 ai: number;
                                 export: number;
+                                provider_cost: number;
                                 concurrent_jobs: number;
+                                plan_id: string;
                             };
                             note: string;
                         };
@@ -3487,11 +3489,15 @@ export interface paths {
                             daily_enrich_limit: number | null;
                             daily_ai_run_limit: number | null;
                             daily_export_limit: number | null;
+                            daily_provider_cost_ceiling: number | null;
                             effective: {
                                 research: number;
                                 enrich: number;
                                 ai: number;
                                 export: number;
+                                provider_cost: number;
+                                concurrent_jobs: number;
+                                plan_id: string;
                             };
                         };
                     };
@@ -3503,6 +3509,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** @description Prefer POST /workspace-budget/ramp for gradual increases with plan ceilings. */
         patch: {
             parameters: {
                 query?: never;
@@ -3517,6 +3524,7 @@ export interface paths {
                         daily_enrich_limit?: number | null;
                         daily_ai_run_limit?: number | null;
                         daily_export_limit?: number | null;
+                        daily_provider_cost_ceiling?: number | null;
                     };
                 };
             };
@@ -3532,11 +3540,15 @@ export interface paths {
                             daily_enrich_limit: number | null;
                             daily_ai_run_limit: number | null;
                             daily_export_limit: number | null;
+                            daily_provider_cost_ceiling: number | null;
                             effective: {
                                 research: number;
                                 enrich: number;
                                 ai: number;
                                 export: number;
+                                provider_cost: number;
+                                concurrent_jobs: number;
+                                plan_id: string;
                             };
                         };
                     };
@@ -3754,6 +3766,596 @@ export interface paths {
                     content: {
                         "application/json": {
                             redacted: number;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rollout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan_id: string;
+                            plan_caps: {
+                                research: number;
+                                enrich: number;
+                                ai: number;
+                                export: number;
+                                provider_cost: number;
+                                concurrent_jobs: number;
+                            };
+                            effective_limits: {
+                                research: number;
+                                enrich: number;
+                                ai: number;
+                                export: number;
+                                provider_cost: number;
+                                concurrent_jobs: number;
+                                plan_id: string;
+                            };
+                            flags: {
+                                key: string;
+                                description: string;
+                                global_enabled: boolean;
+                                tenant_override: boolean | null;
+                                effective: boolean;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/rollout/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        plan_id: "development" | "beta" | "ga";
+                        rollout_notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan_id: string;
+                            rollout_notes: string | null;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/feature-flags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                key: string;
+                                description: string;
+                                global_enabled: boolean;
+                                tenant_override: boolean | null;
+                                effective: boolean;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/feature-flags/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            key: string;
+                            description: string;
+                            global_enabled: boolean;
+                            tenant_override: boolean | null;
+                            effective: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/feedback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                category: string;
+                                body: string;
+                                status: string;
+                                created_at: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        category: "bug" | "data_quality" | "ux" | "request" | "other";
+                        body: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            category: string;
+                            body: string;
+                            status: string;
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/data-quality": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            people: {
+                                unreviewed: number;
+                                accepted: number;
+                                rejected: number;
+                                disputed: number;
+                            };
+                            ai_quarantine: number;
+                            disputed_claims: number;
+                            suppressions: number;
+                            open_feedback: number;
+                            open_incidents: number;
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                /** @enum {string} */
+                                severity: "P0" | "P1" | "P2" | "P3";
+                                summary: string;
+                                /** @enum {string} */
+                                status: "open" | "mitigating" | "resolved";
+                                created_at: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        severity: "P0" | "P1" | "P2" | "P3";
+                        summary: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** @enum {string} */
+                            severity: "P0" | "P1" | "P2" | "P3";
+                            summary: string;
+                            /** @enum {string} */
+                            status: "open" | "mitigating" | "resolved";
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/incidents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "open" | "mitigating" | "resolved";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            /** @enum {string} */
+                            severity: "P0" | "P1" | "P2" | "P3";
+                            summary: string;
+                            /** @enum {string} */
+                            status: "open" | "mitigating" | "resolved";
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/ops/synthetic-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok: boolean;
+                            latency_ms: number;
+                            checks: {
+                                [key: string]: string;
+                            };
+                            id: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ops/synthetic-checks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                check_name: string;
+                                ok: boolean;
+                                latency_ms: number;
+                                created_at: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/workspace-budget/ramp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        field: "daily_research_job_limit" | "daily_enrich_limit" | "daily_ai_run_limit" | "daily_export_limit";
+                        next_value: number;
+                        rationale: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            field: string;
+                            previous_value: number | null;
+                            next_value: number;
+                            plan_ceiling: number;
                         };
                     };
                 };

@@ -74,6 +74,12 @@
 - `GET/PATCH /workspace-budget`
 - `GET /ops/status`, `GET/PATCH /workspace-controls`
 - `GET /ops/retention`, `POST /ops/retention-sweep` (redacts expired excerpts only)
+- `GET /rollout`, `PATCH /rollout/plan`, `GET /feature-flags`, `PATCH /feature-flags/{key}`
+- `POST/GET /feedback`, `GET /ops/data-quality`
+- `GET/POST /ops/incidents`, `PATCH /ops/incidents/{id}`
+- `POST /ops/synthetic-check`, `GET /ops/synthetic-checks`
+- `POST /workspace-budget/ramp` (plan-ceiling aware)
+- `GET /synthetic/probe` (token-gated platform probe)
 - `GET /metrics` (process scrape; no tenant labels; hide behind ingress)
 - `GET /audit-events`
 

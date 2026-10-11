@@ -259,6 +259,7 @@ export default function SettingsPage() {
       </section>
 
       <UsageBudget workspaceId={workspaceId} role={role} />
+      <RolloutPanel workspaceId={workspaceId} role={role} />
       <OpsPanel workspaceId={workspaceId} role={role} />
     </>
   );
@@ -275,26 +276,37 @@ function UsageBudget({
     jobs: Record<string, number>;
     exports: number;
     ai_tokens: number;
-    limits: { research: number; enrich: number; ai: number; export: number };
+    provider_rows: number;
+    limits: {
+      research: number;
+      enrich: number;
+      ai: number;
+      export: number;
+      provider_cost: number;
+      plan_id: string;
+    };
     note: string;
   }>('/api/v1/usage', workspaceId);
   const budget = useApi<{
     daily_export_limit: number | null;
-    effective: { export: number };
+    daily_provider_cost_ceiling: number | null;
+    effective: { export: number; provider_cost: number; plan_id: string };
   }>('/api/v1/workspace-budget', workspaceId);
   const [exportLimit, setExportLimit] = useState('');
+  const [providerCeiling, setProviderCeiling] = useState('');
   const [error, setError] = useState<unknown>(null);
 
   return (
     <section aria-labelledby="usage" className="card">
       <h2 id="usage">Usage and budgets</h2>
       <p className="muted small">
-        Last 24 hours. Billing/plan integration is not enabled; these are workspace meters and admin
-        overrides.
+        Last 24 hours. Overrides are clamped to the workspace plan ceiling. Billing is not enabled.
       </p>
       <ErrorNotice error={usage.error ?? budget.error ?? error} />
       {usage.data ? (
         <dl className="facts">
+          <dt>Plan</dt>
+          <dd>{usage.data.limits.plan_id}</dd>
           <dt>Research jobs</dt>
           <dd>
             {usage.data.jobs.company_research} / {usage.data.limits.research}
@@ -311,6 +323,10 @@ function UsageBudget({
           <dd>
             {usage.data.exports} / {usage.data.limits.export}
           </dd>
+          <dt>Provider rows (24h)</dt>
+          <dd>
+            {usage.data.provider_rows} / {usage.data.limits.provider_cost}
+          </dd>
           <dt>AI tokens</dt>
           <dd>{usage.data.ai_tokens}</dd>
         </dl>
@@ -326,6 +342,8 @@ function UsageBudget({
                 workspaceId,
                 body: {
                   daily_export_limit: exportLimit.trim() === '' ? null : Number(exportLimit),
+                  daily_provider_cost_ceiling:
+                    providerCeiling.trim() === '' ? null : Number(providerCeiling),
                 },
               });
               budget.reload();
@@ -343,11 +361,211 @@ function UsageBudget({
               onChange={(e) => setExportLimit(e.target.value)}
             />
           </label>
+          <label>
+            Daily provider cost ceiling (blank = plan default{' '}
+            {budget.data?.effective.provider_cost ?? '—'})
+            <input
+              inputMode="numeric"
+              value={providerCeiling}
+              onChange={(e) => setProviderCeiling(e.target.value)}
+            />
+          </label>
           <button type="submit" className="button">
             Save budget override
           </button>
         </form>
       ) : null}
+    </section>
+  );
+}
+
+function RolloutPanel({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: ReturnType<typeof useWorkspaceRole>;
+}) {
+  const rollout = useApi<{
+    plan_id: string;
+    plan_caps: {
+      research: number;
+      enrich: number;
+      ai: number;
+      export: number;
+      provider_cost: number;
+      concurrent_jobs: number;
+    };
+    effective_limits: {
+      research: number;
+      enrich: number;
+      ai: number;
+      export: number;
+      provider_cost: number;
+      concurrent_jobs: number;
+      plan_id: string;
+    };
+    flags: Array<{
+      key: string;
+      description: string;
+      global_enabled: boolean;
+      tenant_override: boolean | null;
+      effective: boolean;
+    }>;
+    note: string;
+  }>('/api/v1/rollout', workspaceId);
+  const quality = useApi<{
+    people: { unreviewed: number; accepted: number; rejected: number; disputed: number };
+    ai_quarantine: number;
+    disputed_claims: number;
+    suppressions: number;
+    open_feedback: number;
+    open_incidents: number;
+    note: string;
+  }>(allowed(role, 'readOps') ? '/api/v1/ops/data-quality' : null, workspaceId);
+  const [planId, setPlanId] = useState('beta');
+  const [feedbackBody, setFeedbackBody] = useState('');
+  const [feedbackCategory, setFeedbackCategory] = useState<
+    'bug' | 'data_quality' | 'ux' | 'request' | 'other'
+  >('data_quality');
+  const [error, setError] = useState<unknown>(null);
+
+  if (!rollout.data && !rollout.error) return null;
+
+  return (
+    <section aria-labelledby="rollout" className="card">
+      <h2 id="rollout">Controlled rollout</h2>
+      <p className="muted small">
+        Plan ceilings, feature flags, and beta feedback. GA packaging is not a readiness claim.
+      </p>
+      <ErrorNotice error={rollout.error ?? quality.error ?? error} />
+      {rollout.data ? (
+        <>
+          <dl className="facts">
+            <dt>Plan</dt>
+            <dd>{rollout.data.plan_id}</dd>
+            <dt>Effective concurrent jobs</dt>
+            <dd>{rollout.data.effective_limits.concurrent_jobs}</dd>
+            <dt>Plan provider cost cap</dt>
+            <dd>{rollout.data.plan_caps.provider_cost}</dd>
+          </dl>
+          <p className="muted small">{rollout.data.note}</p>
+          <ul className="list">
+            {rollout.data.flags.map((f) => (
+              <li key={f.key}>
+                <strong>{f.key}</strong> — {f.description}{' '}
+                <StatusBadge status={f.effective ? 'enabled' : 'disabled'} />
+                {allowed(role, 'manageOps') ? (
+                  <button
+                    type="button"
+                    className="button"
+                    onClick={async () => {
+                      setError(null);
+                      try {
+                        await api(`/api/v1/feature-flags/${f.key}`, {
+                          method: 'PATCH',
+                          workspaceId,
+                          body: { enabled: !f.effective },
+                        });
+                        rollout.reload();
+                      } catch (err) {
+                        setError(err);
+                      }
+                    }}
+                  >
+                    Toggle override
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+      {quality.data ? (
+        <dl className="facts">
+          <dt>Unreviewed people</dt>
+          <dd>{quality.data.people.unreviewed}</dd>
+          <dt>AI quarantine</dt>
+          <dd>{quality.data.ai_quarantine}</dd>
+          <dt>Open feedback</dt>
+          <dd>{quality.data.open_feedback}</dd>
+          <dt>Open incidents</dt>
+          <dd>{quality.data.open_incidents}</dd>
+        </dl>
+      ) : null}
+      {allowed(role, 'manageOps') && rollout.data ? (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            try {
+              await api('/api/v1/rollout/plan', {
+                method: 'PATCH',
+                workspaceId,
+                body: { plan_id: planId },
+              });
+              rollout.reload();
+            } catch (err) {
+              setError(err);
+            }
+          }}
+        >
+          <label>
+            Plan
+            <select value={planId} onChange={(e) => setPlanId(e.target.value)}>
+              <option value="development">development</option>
+              <option value="beta">beta</option>
+              <option value="ga">ga</option>
+            </select>
+          </label>
+          <button type="submit" className="button">
+            Update plan
+          </button>
+        </form>
+      ) : null}
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setError(null);
+          try {
+            await api('/api/v1/feedback', {
+              method: 'POST',
+              workspaceId,
+              body: { category: feedbackCategory, body: feedbackBody },
+            });
+            setFeedbackBody('');
+            quality.reload();
+          } catch (err) {
+            setError(err);
+          }
+        }}
+      >
+        <label>
+          Feedback category
+          <select
+            value={feedbackCategory}
+            onChange={(e) => setFeedbackCategory(e.target.value as typeof feedbackCategory)}
+          >
+            <option value="bug">bug</option>
+            <option value="data_quality">data_quality</option>
+            <option value="ux">ux</option>
+            <option value="request">request</option>
+            <option value="other">other</option>
+          </select>
+        </label>
+        <label>
+          Feedback
+          <textarea
+            value={feedbackBody}
+            onChange={(e) => setFeedbackBody(e.target.value)}
+            rows={3}
+            required
+          />
+        </label>
+        <button type="submit" className="button">
+          Submit feedback
+        </button>
+      </form>
     </section>
   );
 }

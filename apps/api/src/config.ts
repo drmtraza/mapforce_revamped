@@ -60,6 +60,13 @@ const ConfigSchema = z
     TENANT_DAILY_AI_RUN_LIMIT: z.coerce.number().int().min(0).max(100_000).default(20),
     TENANT_DAILY_EXPORT_LIMIT: z.coerce.number().int().min(0).max(100_000).default(20),
     TENANT_CONCURRENT_JOB_LIMIT: z.coerce.number().int().min(1).max(1_000).default(8),
+    TENANT_DAILY_PROVIDER_COST_CEILING: z.coerce.number().min(0).max(1_000_000).default(25),
+    DEFAULT_TENANT_PLAN: z.enum(['development', 'beta', 'ga']).default('beta'),
+    MAX_BETA_TENANTS: z.coerce.number().int().min(1).max(10_000).default(25),
+    SYNTHETIC_PROBE_TOKEN: z.preprocess(
+      (v) => (typeof v === 'string' && v.trim() === '' ? undefined : v),
+      z.string().min(16).optional(),
+    ),
     AI_MAX_TOKENS: z.coerce.number().int().min(256).max(100_000).default(4000),
     AI_TIMEOUT_MS: z.coerce.number().int().min(500).max(120_000).default(15_000),
     FEATURE_HERMES: bool,

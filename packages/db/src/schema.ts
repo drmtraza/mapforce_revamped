@@ -45,11 +45,14 @@ export interface SessionsTable {
   revoked_at: Timestamp | null;
 }
 
+export type TenantPlanId = 'development' | 'beta' | 'ga';
+
 export interface TenantsTable {
   id: string;
   name: string;
-  plan_id: Generated<string>;
+  plan_id: Generated<TenantPlanId>;
   status: Generated<'active' | 'suspended'>;
+  rollout_notes: string | null;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
@@ -651,7 +654,66 @@ export interface TenantBudgetsTable {
   daily_enrich_limit: number | null;
   daily_ai_run_limit: number | null;
   daily_export_limit: number | null;
+  daily_provider_cost_ceiling: NullableNumeric;
   updated_by: string | null;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface FeatureFlagsTable {
+  key: string;
+  description: string;
+  enabled: Generated<boolean>;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface TenantFeatureOverridesTable {
+  tenant_id: string;
+  flag_key: string;
+  enabled: boolean;
+  updated_by: string | null;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface FeedbackItemsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  author_user_id: string;
+  category: 'bug' | 'data_quality' | 'ux' | 'request' | 'other';
+  body: string;
+  status: Generated<'open' | 'triaged' | 'closed'>;
+  created_at: GeneratedTimestamp;
+}
+
+export interface SyntheticCheckRunsTable {
+  id: Generated<string>;
+  tenant_id: string | null;
+  check_name: string;
+  ok: boolean;
+  latency_ms: number;
+  detail: Json;
+  created_at: GeneratedTimestamp;
+}
+
+export interface QuotaRampEventsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  actor_user_id: string | null;
+  field: string;
+  previous_value: number | null;
+  next_value: number;
+  plan_ceiling: number;
+  rationale: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface IncidentTriageNotesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  author_user_id: string;
+  severity: 'P0' | 'P1' | 'P2' | 'P3';
+  summary: string;
+  status: Generated<'open' | 'mitigating' | 'resolved'>;
+  created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
 
@@ -714,4 +776,10 @@ export interface Database {
   export_batches: ExportBatchesTable;
   tenant_budgets: TenantBudgetsTable;
   workspace_controls: WorkspaceControlsTable;
+  feature_flags: FeatureFlagsTable;
+  tenant_feature_overrides: TenantFeatureOverridesTable;
+  feedback_items: FeedbackItemsTable;
+  synthetic_check_runs: SyntheticCheckRunsTable;
+  quota_ramp_events: QuotaRampEventsTable;
+  incident_triage_notes: IncidentTriageNotesTable;
 }

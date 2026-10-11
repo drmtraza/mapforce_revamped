@@ -7210,8 +7210,14 @@
                         "export": {
                           "type": "number"
                         },
+                        "provider_cost": {
+                          "type": "number"
+                        },
                         "concurrent_jobs": {
                           "type": "number"
+                        },
+                        "plan_id": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -7219,7 +7225,9 @@
                         "enrich",
                         "ai",
                         "export",
-                        "concurrent_jobs"
+                        "provider_cost",
+                        "concurrent_jobs",
+                        "plan_id"
                       ],
                       "additionalProperties": false
                     },
@@ -7281,6 +7289,12 @@
                         "null"
                       ]
                     },
+                    "daily_provider_cost_ceiling": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
                     "effective": {
                       "type": "object",
                       "properties": {
@@ -7295,13 +7309,25 @@
                         },
                         "export": {
                           "type": "number"
+                        },
+                        "provider_cost": {
+                          "type": "number"
+                        },
+                        "concurrent_jobs": {
+                          "type": "number"
+                        },
+                        "plan_id": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "research",
                         "enrich",
                         "ai",
-                        "export"
+                        "export",
+                        "provider_cost",
+                        "concurrent_jobs",
+                        "plan_id"
                       ],
                       "additionalProperties": false
                     }
@@ -7311,6 +7337,7 @@
                     "daily_enrich_limit",
                     "daily_ai_run_limit",
                     "daily_export_limit",
+                    "daily_provider_cost_ceiling",
                     "effective"
                   ],
                   "additionalProperties": false
@@ -7324,6 +7351,7 @@
         "tags": [
           "usage"
         ],
+        "description": "Prefer POST /workspace-budget/ramp for gradual increases with plan ceilings.",
         "requestBody": {
           "required": true,
           "content": {
@@ -7378,6 +7406,18 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "daily_provider_cost_ceiling": {
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 1000000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 }
               }
@@ -7416,6 +7456,12 @@
                         "null"
                       ]
                     },
+                    "daily_provider_cost_ceiling": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
                     "effective": {
                       "type": "object",
                       "properties": {
@@ -7430,13 +7476,25 @@
                         },
                         "export": {
                           "type": "number"
+                        },
+                        "provider_cost": {
+                          "type": "number"
+                        },
+                        "concurrent_jobs": {
+                          "type": "number"
+                        },
+                        "plan_id": {
+                          "type": "string"
                         }
                       },
                       "required": [
                         "research",
                         "enrich",
                         "ai",
-                        "export"
+                        "export",
+                        "provider_cost",
+                        "concurrent_jobs",
+                        "plan_id"
                       ],
                       "additionalProperties": false
                     }
@@ -7446,6 +7504,7 @@
                     "daily_enrich_limit",
                     "daily_ai_run_limit",
                     "daily_export_limit",
+                    "daily_provider_cost_ceiling",
                     "effective"
                   ],
                   "additionalProperties": false
@@ -7792,6 +7851,971 @@
                   },
                   "required": [
                     "redacted"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rollout": {
+      "get": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan_id": {
+                      "type": "string"
+                    },
+                    "plan_caps": {
+                      "type": "object",
+                      "properties": {
+                        "research": {
+                          "type": "number"
+                        },
+                        "enrich": {
+                          "type": "number"
+                        },
+                        "ai": {
+                          "type": "number"
+                        },
+                        "export": {
+                          "type": "number"
+                        },
+                        "provider_cost": {
+                          "type": "number"
+                        },
+                        "concurrent_jobs": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "research",
+                        "enrich",
+                        "ai",
+                        "export",
+                        "provider_cost",
+                        "concurrent_jobs"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "effective_limits": {
+                      "type": "object",
+                      "properties": {
+                        "research": {
+                          "type": "number"
+                        },
+                        "enrich": {
+                          "type": "number"
+                        },
+                        "ai": {
+                          "type": "number"
+                        },
+                        "export": {
+                          "type": "number"
+                        },
+                        "provider_cost": {
+                          "type": "number"
+                        },
+                        "concurrent_jobs": {
+                          "type": "number"
+                        },
+                        "plan_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "research",
+                        "enrich",
+                        "ai",
+                        "export",
+                        "provider_cost",
+                        "concurrent_jobs",
+                        "plan_id"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "flags": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "global_enabled": {
+                            "type": "boolean"
+                          },
+                          "tenant_override": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "effective": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "description",
+                          "global_enabled",
+                          "tenant_override",
+                          "effective"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "plan_id",
+                    "plan_caps",
+                    "effective_limits",
+                    "flags",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/rollout/plan": {
+      "patch": {
+        "tags": [
+          "rollout"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan_id": {
+                    "type": "string",
+                    "enum": [
+                      "development",
+                      "beta",
+                      "ga"
+                    ]
+                  },
+                  "rollout_notes": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "plan_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "plan_id": {
+                      "type": "string"
+                    },
+                    "rollout_notes": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "plan_id",
+                    "rollout_notes"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feature-flags": {
+      "get": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "global_enabled": {
+                            "type": "boolean"
+                          },
+                          "tenant_override": {
+                            "type": [
+                              "boolean",
+                              "null"
+                            ]
+                          },
+                          "effective": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "description",
+                          "global_enabled",
+                          "tenant_override",
+                          "effective"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feature-flags/{key}": {
+      "patch": {
+        "tags": [
+          "rollout"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "enabled"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9_]{1,63}$"
+            },
+            "in": "path",
+            "name": "key",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "global_enabled": {
+                      "type": "boolean"
+                    },
+                    "tenant_override": {
+                      "type": [
+                        "boolean",
+                        "null"
+                      ]
+                    },
+                    "effective": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "description",
+                    "global_enabled",
+                    "tenant_override",
+                    "effective"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/feedback": {
+      "post": {
+        "tags": [
+          "rollout"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "bug",
+                      "data_quality",
+                      "ux",
+                      "request",
+                      "other"
+                    ]
+                  },
+                  "body": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  }
+                },
+                "required": [
+                  "category",
+                  "body"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string"
+                    },
+                    "body": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "category",
+                    "body",
+                    "status",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string"
+                          },
+                          "body": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "category",
+                          "body",
+                          "status",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/data-quality": {
+      "get": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "people": {
+                      "type": "object",
+                      "properties": {
+                        "unreviewed": {
+                          "type": "number"
+                        },
+                        "accepted": {
+                          "type": "number"
+                        },
+                        "rejected": {
+                          "type": "number"
+                        },
+                        "disputed": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "unreviewed",
+                        "accepted",
+                        "rejected",
+                        "disputed"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "ai_quarantine": {
+                      "type": "number"
+                    },
+                    "disputed_claims": {
+                      "type": "number"
+                    },
+                    "suppressions": {
+                      "type": "number"
+                    },
+                    "open_feedback": {
+                      "type": "number"
+                    },
+                    "open_incidents": {
+                      "type": "number"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "people",
+                    "ai_quarantine",
+                    "disputed_claims",
+                    "suppressions",
+                    "open_feedback",
+                    "open_incidents",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/incidents": {
+      "get": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "severity": {
+                            "type": "string",
+                            "enum": [
+                              "P0",
+                              "P1",
+                              "P2",
+                              "P3"
+                            ]
+                          },
+                          "summary": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "open",
+                              "mitigating",
+                              "resolved"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "severity",
+                          "summary",
+                          "status",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "rollout"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "severity": {
+                    "type": "string",
+                    "enum": [
+                      "P0",
+                      "P1",
+                      "P2",
+                      "P3"
+                    ]
+                  },
+                  "summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "severity",
+                  "summary"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "P0",
+                        "P1",
+                        "P2",
+                        "P3"
+                      ]
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "open",
+                        "mitigating",
+                        "resolved"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "severity",
+                    "summary",
+                    "status",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/incidents/{id}": {
+      "patch": {
+        "tags": [
+          "rollout"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "open",
+                      "mitigating",
+                      "resolved"
+                    ]
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string",
+                      "enum": [
+                        "P0",
+                        "P1",
+                        "P2",
+                        "P3"
+                      ]
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "open",
+                        "mitigating",
+                        "resolved"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "severity",
+                    "summary",
+                    "status",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/synthetic-check": {
+      "post": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean"
+                    },
+                    "latency_ms": {
+                      "type": "number"
+                    },
+                    "checks": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "string"
+                      }
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "ok",
+                    "latency_ms",
+                    "checks",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ops/synthetic-checks": {
+      "get": {
+        "tags": [
+          "rollout"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "check_name": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "latency_ms": {
+                            "type": "number"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "check_name",
+                          "ok",
+                          "latency_ms",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace-budget/ramp": {
+      "post": {
+        "tags": [
+          "rollout"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "field": {
+                    "type": "string",
+                    "enum": [
+                      "daily_research_job_limit",
+                      "daily_enrich_limit",
+                      "daily_ai_run_limit",
+                      "daily_export_limit"
+                    ]
+                  },
+                  "next_value": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "field",
+                  "next_value",
+                  "rationale"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "field": {
+                      "type": "string"
+                    },
+                    "previous_value": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "next_value": {
+                      "type": "number"
+                    },
+                    "plan_ceiling": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "field",
+                    "previous_value",
+                    "next_value",
+                    "plan_ceiling"
                   ],
                   "additionalProperties": false
                 }

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { withContext } from '@mapforce/db';
+import { sql, withContext } from '@mapforce/db';
 import type { AppDeps } from '../../app.ts';
 import { AppError, notFound } from '../../errors.ts';
 import { requireTenant, requireUser } from '../../http/context.ts';
@@ -20,7 +20,7 @@ const Workspace = z.object({
 export const workspaceRoutes =
   (deps: AppDeps): FastifyPluginAsyncZod =>
   async (app) => {
-    const { db } = deps;
+    const { db, config } = deps;
 
     app.get(
       '/workspaces',
@@ -71,9 +71,21 @@ export const workspaceRoutes =
           if (Number(owned.n) >= MAX_OWNED_WORKSPACES) {
             throw new AppError('QUOTA_EXCEEDED', 'Workspace limit reached for this user.');
           }
+          const planId = config.DEFAULT_TENANT_PLAN;
+          if (planId === 'beta') {
+            const seats = await sql<{
+              n: number;
+            }>`SELECT count_tenants_on_plan('beta') AS n`.execute(trx);
+            if (Number(seats.rows[0]?.n ?? 0) >= config.MAX_BETA_TENANTS) {
+              throw new AppError(
+                'QUOTA_EXCEEDED',
+                `At most ${config.MAX_BETA_TENANTS} beta workspaces are allowed.`,
+              );
+            }
+          }
           const tenant = await trx
             .insertInto('tenants')
-            .values({ id: tenantId, name: request.body.name })
+            .values({ id: tenantId, name: request.body.name, plan_id: planId })
             .returning(['id', 'name', 'created_at'])
             .executeTakeFirstOrThrow();
           await trx

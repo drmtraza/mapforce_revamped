@@ -22,9 +22,21 @@ const Usage = z.object({
     enrich: z.number(),
     ai: z.number(),
     export: z.number(),
+    provider_cost: z.number(),
     concurrent_jobs: z.number(),
+    plan_id: z.string(),
   }),
   note: z.string(),
+});
+
+const EffectiveLimits = z.object({
+  research: z.number(),
+  enrich: z.number(),
+  ai: z.number(),
+  export: z.number(),
+  provider_cost: z.number(),
+  concurrent_jobs: z.number(),
+  plan_id: z.string(),
 });
 
 const Budget = z.object({
@@ -32,12 +44,8 @@ const Budget = z.object({
   daily_enrich_limit: z.number().nullable(),
   daily_ai_run_limit: z.number().nullable(),
   daily_export_limit: z.number().nullable(),
-  effective: z.object({
-    research: z.number(),
-    enrich: z.number(),
-    ai: z.number(),
-    export: z.number(),
-  }),
+  daily_provider_cost_ceiling: z.number().nullable(),
+  effective: EffectiveLimits,
 });
 
 export const usageRoutes =
@@ -93,7 +101,7 @@ export const usageRoutes =
             exports: Number(exports.n),
             ai_tokens: tokenSum,
             provider_rows: Number(providers.n),
-            limits: { ...limits, concurrent_jobs: config.TENANT_CONCURRENT_JOB_LIMIT },
+            limits,
             note: 'Usage is auditable workspace activity for the last 24 hours. Billing integration is not enabled.',
           };
         });
@@ -119,6 +127,10 @@ export const usageRoutes =
             daily_enrich_limit: row?.daily_enrich_limit ?? null,
             daily_ai_run_limit: row?.daily_ai_run_limit ?? null,
             daily_export_limit: row?.daily_export_limit ?? null,
+            daily_provider_cost_ceiling:
+              row?.daily_provider_cost_ceiling != null
+                ? Number(row.daily_provider_cost_ceiling)
+                : null,
             effective,
           };
         });
@@ -130,11 +142,14 @@ export const usageRoutes =
       {
         schema: {
           tags: ['usage'],
+          description:
+            'Prefer POST /workspace-budget/ramp for gradual increases with plan ceilings.',
           body: z.object({
             daily_research_job_limit: z.number().int().min(0).max(100_000).nullable().optional(),
             daily_enrich_limit: z.number().int().min(0).max(100_000).nullable().optional(),
             daily_ai_run_limit: z.number().int().min(0).max(100_000).nullable().optional(),
             daily_export_limit: z.number().int().min(0).max(100_000).nullable().optional(),
+            daily_provider_cost_ceiling: z.number().min(0).max(1_000_000).nullable().optional(),
           }),
           response: { 200: Budget },
         },
@@ -164,6 +179,10 @@ export const usageRoutes =
               request.body.daily_export_limit === undefined
                 ? (current?.daily_export_limit ?? null)
                 : request.body.daily_export_limit,
+            daily_provider_cost_ceiling:
+              request.body.daily_provider_cost_ceiling === undefined
+                ? (current?.daily_provider_cost_ceiling ?? null)
+                : request.body.daily_provider_cost_ceiling,
             updated_by: ctx.userId,
           };
           await trx
@@ -180,7 +199,17 @@ export const usageRoutes =
             correlationId: ctx.correlationId,
           });
           const effective = await resolveTenantLimits(trx, ctx.tenantId, config);
-          return { ...next, effective };
+          return {
+            daily_research_job_limit: next.daily_research_job_limit,
+            daily_enrich_limit: next.daily_enrich_limit,
+            daily_ai_run_limit: next.daily_ai_run_limit,
+            daily_export_limit: next.daily_export_limit,
+            daily_provider_cost_ceiling:
+              next.daily_provider_cost_ceiling != null
+                ? Number(next.daily_provider_cost_ceiling)
+                : null,
+            effective,
+          };
         });
       },
     );

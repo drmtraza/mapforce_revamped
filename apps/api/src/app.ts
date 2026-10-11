@@ -12,7 +12,7 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import type { Redis } from 'ioredis';
-import { poolStats, sql, type Db } from '@mapforce/db';
+import { poolStats, sql, withContext, type Db } from '@mapforce/db';
 import type { IdentityProvider } from './auth/idp.ts';
 import { resolveSession, SESSION_COOKIE } from './auth/sessions.ts';
 import type { Config } from './config.ts';
@@ -44,6 +44,7 @@ import { exportRoutes } from './modules/exports/routes.ts';
 import { usageRoutes } from './modules/usage/routes.ts';
 import { observeRequest, prometheusText } from './modules/ops/metrics.ts';
 import { opsRoutes } from './modules/ops/routes.ts';
+import { rolloutRoutes } from './modules/rollout/routes.ts';
 import { WORKSPACE_HEADER } from './http/context.ts';
 
 export interface AppDeps {
@@ -209,9 +210,48 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(exportRoutes(deps));
       await v1.register(usageRoutes(deps));
       await v1.register(opsRoutes(deps));
+      await v1.register(rolloutRoutes(deps));
     },
     { prefix: '/api/v1' },
   );
+
+  app.get('/synthetic/probe', { schema: { hide: true } }, async (request, reply) => {
+    const expected = deps.config.SYNTHETIC_PROBE_TOKEN;
+    if (!expected || request.headers['x-synthetic-token'] !== expected) {
+      return reply
+        .status(404)
+        .send(errorBody(new AppError('NOT_FOUND', 'Route not found.'), request.id));
+    }
+    const started = Date.now();
+    const checks: Record<string, string> = { database: 'ok', redis: 'skipped' };
+    try {
+      await sql`SELECT 1`.execute(deps.db);
+    } catch {
+      checks.database = 'error';
+    }
+    if (deps.redis) {
+      try {
+        checks.redis = (await deps.redis.ping()) === 'PONG' ? 'ok' : 'error';
+      } catch {
+        checks.redis = 'error';
+      }
+    }
+    const ok = checks.database === 'ok' && checks.redis !== 'error';
+    const latency_ms = Date.now() - started;
+    await withContext(deps.db, { tenantId: null, userId: null }, async (trx) => {
+      await trx
+        .insertInto('synthetic_check_runs')
+        .values({
+          tenant_id: null,
+          check_name: 'platform_probe',
+          ok,
+          latency_ms,
+          detail: JSON.stringify(checks),
+        })
+        .execute();
+    });
+    return reply.status(ok ? 200 : 503).send({ ok, latency_ms, checks });
+  });
 
   return app;
 }
