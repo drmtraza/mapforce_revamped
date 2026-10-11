@@ -7,7 +7,8 @@ import { ClaimTypeBadge, ConfidenceBadge, MockBadge, StatusBadge } from '@/compo
 import { formatDate } from '@/components/evidence-list';
 import { Empty, ErrorNotice, Loading } from '@/components/feedback';
 import { api, ApiError, type ApiResponse } from '@/lib/api';
-import { useApi } from '@/lib/use-api';
+import { allowed } from '@/lib/roles';
+import { useApi, useWorkspaceRole } from '@/lib/use-api';
 
 type Person = ApiResponse<'/api/v1/people/{id}', 'get'>;
 type Decision = 'confirm' | 'reject' | 'dispute';
@@ -29,6 +30,10 @@ function display(value: unknown): string {
 export default function PersonPage() {
   const { workspaceId, personId } = useParams<{ workspaceId: string; personId: string }>();
   const person = useApi<Person>(`/api/v1/people/${personId}`, workspaceId);
+  const role = useWorkspaceRole(workspaceId);
+  const canReview = allowed(role, 'reviewPeople');
+  const canMerge = allowed(role, 'mergePeople');
+  const canEnrich = allowed(role, 'startEnrich');
   const [decision, setDecision] = useState<Decision>('confirm');
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
@@ -100,7 +105,13 @@ export default function PersonPage() {
           {p.roles.map((r) => (
             <li key={r.id}>
               {r.title ?? 'Title unknown'}
-              {r.department ? <span className="muted"> · {r.department}</span> : null}{' '}
+              {r.department ? <span className="muted"> · {r.department}</span> : null}
+              {r.start_date || r.end_date ? (
+                <span className="muted">
+                  {' '}
+                  · {r.start_date ?? '?'} – {r.end_date ?? 'present'}
+                </span>
+              ) : null}{' '}
               <StatusBadge status={r.status} />
             </li>
           ))}
@@ -146,53 +157,206 @@ export default function PersonPage() {
 
       <section aria-labelledby="contact" className="card">
         <h2 id="contact">Contact points</h2>
-        <p className="muted">{p.contact_points_note}</p>
+        <p className="muted small">{p.contact_points_note}</p>
+        {p.contact_points.length === 0 ? <Empty>No contact points collected.</Empty> : null}
+        {p.contact_points.length > 0 ? (
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Hint</th>
+                <th scope="col">Status</th>
+                <th scope="col">Method</th>
+                <th scope="col">Verified at</th>
+              </tr>
+            </thead>
+            <tbody>
+              {p.contact_points.map((c) => (
+                <tr key={c.id}>
+                  <td>{c.display_hint}</td>
+                  <td>
+                    <StatusBadge status={c.status} />
+                  </td>
+                  <td>{c.verification_method}</td>
+                  <td>{c.verified_at ? formatDate(c.verified_at) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : null}
+        {canEnrich ? (
+          <p>
+            <button
+              type="button"
+              className="button"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                setError(null);
+                setSaved(null);
+                try {
+                  await api(`/api/v1/people/${personId}/enrich-jobs`, {
+                    method: 'POST',
+                    workspaceId,
+                  });
+                  setSaved('Enrichment queued. Reload after the job finishes.');
+                  person.reload();
+                } catch (err) {
+                  setError(err);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              Enrich contacts
+            </button>
+          </p>
+        ) : null}
       </section>
+
+      {p.match_candidates.length > 0 || p.merges.length > 0 ? (
+        <section aria-labelledby="matches" className="card">
+          <h2 id="matches">Possible duplicates</h2>
+          {p.match_candidates.map((m) => (
+            <div key={m.id} className="claim">
+              <p>
+                Same normalized name as <strong>{m.other_name}</strong> ({m.score}). {m.rationale}
+              </p>
+              {canMerge ? (
+                <p>
+                  <button
+                    type="button"
+                    className="button button-primary"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError(null);
+                      try {
+                        await api(`/api/v1/people/match-candidates/${m.id}/accept`, {
+                          method: 'POST',
+                          workspaceId,
+                          body: { survivor_person_id: personId },
+                        });
+                        setSaved('Records merged. The other person now redirects here.');
+                        person.reload();
+                      } catch (err) {
+                        setError(err);
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    Merge into this person
+                  </button>{' '}
+                  <button
+                    type="button"
+                    className="button"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError(null);
+                      try {
+                        await api(`/api/v1/people/match-candidates/${m.id}/reject`, {
+                          method: 'POST',
+                          workspaceId,
+                        });
+                        person.reload();
+                      } catch (err) {
+                        setError(err);
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    Not the same person
+                  </button>
+                </p>
+              ) : null}
+            </div>
+          ))}
+          {p.merges.map((m) => (
+            <p key={m.id}>
+              Merged another record into this person.
+              {canMerge ? (
+                <>
+                  {' '}
+                  <button
+                    type="button"
+                    className="button"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      setError(null);
+                      try {
+                        await api(`/api/v1/people/merges/${m.id}/split`, {
+                          method: 'POST',
+                          workspaceId,
+                        });
+                        setSaved('Merge undone.');
+                        person.reload();
+                      } catch (err) {
+                        setError(err);
+                      } finally {
+                        setBusy(false);
+                      }
+                    }}
+                  >
+                    Split
+                  </button>
+                </>
+              ) : null}
+            </p>
+          ))}
+        </section>
+      ) : null}
 
       <section aria-labelledby="review" className="card">
         <h2 id="review">Review</h2>
-        <form onSubmit={review} className="form-stack">
-          <fieldset>
-            <legend>Decision</legend>
-            {(
-              [
-                ['confirm', 'Confirm: evidence supports this person and role'],
-                ['dispute', 'Dispute: evidence is conflicting or unclear'],
-                ['reject', 'Reject: wrong person or not at this company'],
-              ] as const
-            ).map(([value, label]) => (
-              <label key={value} className="radio">
-                <input
-                  type="radio"
-                  name="decision"
-                  value={value}
-                  checked={decision === value}
-                  onChange={() => setDecision(value)}
-                />
-                {label}
-              </label>
-            ))}
-          </fieldset>
-          <label htmlFor="reason">Reason (optional)</label>
-          <textarea
-            id="reason"
-            value={reason}
-            onChange={(e) => setReason(e.target.value)}
-            maxLength={1000}
-            rows={3}
-          />
-          <div>
-            <button type="submit" className="button button-primary" disabled={busy}>
-              {busy ? 'Saving…' : 'Record review'}
-            </button>
-          </div>
-          {saved ? (
-            <p role="status" className="notice notice-ok">
-              {saved}
-            </p>
-          ) : null}
+        {canReview ? (
+          <form onSubmit={review} className="form-stack">
+            <fieldset>
+              <legend>Decision</legend>
+              {(
+                [
+                  ['confirm', 'Confirm: evidence supports this person and role'],
+                  ['dispute', 'Dispute: evidence is conflicting or unclear'],
+                  ['reject', 'Reject: wrong person or not at this company'],
+                ] as const
+              ).map(([value, label]) => (
+                <label key={value} className="radio">
+                  <input
+                    type="radio"
+                    name="decision"
+                    value={value}
+                    checked={decision === value}
+                    onChange={() => setDecision(value)}
+                  />
+                  {label}
+                </label>
+              ))}
+            </fieldset>
+            <label htmlFor="reason">Reason (optional)</label>
+            <textarea
+              id="reason"
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              maxLength={1000}
+              rows={3}
+            />
+            <div>
+              <button type="submit" className="button button-primary" disabled={busy}>
+                {busy ? 'Saving…' : 'Record review'}
+              </button>
+            </div>
+            {saved ? (
+              <p role="status" className="notice notice-ok">
+                {saved}
+              </p>
+            ) : null}
+            <ErrorNotice error={error} />
+          </form>
+        ) : (
           <ErrorNotice error={error} />
-        </form>
+        )}
         <h3>History</h3>
         {p.reviews.length === 0 ? <Empty>No reviews yet.</Empty> : null}
         <ul className="list">

@@ -10,7 +10,24 @@ export type Persona =
   | 'unknown';
 
 export type AdapterOperation =
-  'fetch_company_evidence' | 'discover_people' | 'fetch_registry_record' | 'discover_companies';
+  | 'fetch_company_evidence'
+  | 'discover_people'
+  | 'fetch_registry_record'
+  | 'discover_companies'
+  | 'fetch_intent_signals'
+  | 'enrich_contact';
+
+export type SignalType = 'hiring' | 'funding' | 'procurement' | 'news' | 'product' | 'other';
+export type ContactType = 'work_email' | 'work_phone';
+export type ContactStatus =
+  | 'unverified'
+  | 'provider_verified'
+  | 'deliverable_likely'
+  | 'invalid'
+  | 'catch_all'
+  | 'unknown'
+  | 'suppressed';
+export type VerificationMethod = 'none' | 'pattern' | 'mx' | 'provider' | 'user';
 
 export interface AdapterCompanyCandidate {
   ref: string;
@@ -73,6 +90,31 @@ export interface AdapterRelationship {
   evidence_refs: string[];
 }
 
+export interface AdapterSignal {
+  ref: string;
+  signal_type: SignalType;
+  title: string;
+  summary: string;
+  implies_budget: boolean;
+  claim_type: SourcedClaimType;
+  confidence: number;
+  country_code: string | null;
+  observed_at: string;
+  evidence_refs: string[];
+}
+
+export interface AdapterContactPoint {
+  ref: string;
+  contact_type: ContactType;
+  value: string;
+  status: ContactStatus;
+  verification_method: VerificationMethod;
+  verified_at: string | null;
+  claim_type: SourcedClaimType;
+  confidence: number;
+  evidence_refs: string[];
+}
+
 export interface AdapterResult {
   schema_version: 1;
   source_key: string;
@@ -86,6 +128,8 @@ export interface AdapterResult {
   companies?: AdapterCompanyCandidate[];
   people: AdapterPerson[];
   relationships: AdapterRelationship[];
+  signals?: AdapterSignal[];
+  contact_points?: AdapterContactPoint[];
 }
 
 export interface OrgMapPerson {

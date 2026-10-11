@@ -5,7 +5,12 @@ from __future__ import annotations
 from typing import Any, Literal, NotRequired, TypedDict
 
 Operation = Literal[
-    "fetch_company_evidence", "discover_people", "fetch_registry_record", "discover_companies"
+    "fetch_company_evidence",
+    "discover_people",
+    "fetch_registry_record",
+    "discover_companies",
+    "fetch_intent_signals",
+    "enrich_contact",
 ]
 SourcedClaimType = Literal["source_fact", "provider_fact"]
 
@@ -13,6 +18,11 @@ SourcedClaimType = Literal["source_fact", "provider_fact"]
 class CompanyRef(TypedDict):
     domain: str
     name: str
+
+
+class PersonRef(TypedDict):
+    full_name: str
+    title: NotRequired[str | None]
 
 
 class DiscoveryQuery(TypedDict):
@@ -29,6 +39,7 @@ class AdapterRequest(TypedDict):
     source_key: str
     operation: Operation
     company: NotRequired[CompanyRef]
+    person: NotRequired[PersonRef]
     query: NotRequired[DiscoveryQuery]
     budget: Budget
     correlation_id: str
@@ -89,6 +100,39 @@ class Relationship(TypedDict):
     evidence_refs: list[str]
 
 
+class Signal(TypedDict):
+    ref: str
+    signal_type: Literal["hiring", "funding", "procurement", "news", "product", "other"]
+    title: str
+    summary: str
+    implies_budget: bool
+    claim_type: SourcedClaimType
+    confidence: float
+    country_code: str | None
+    observed_at: str
+    evidence_refs: list[str]
+
+
+class ContactPoint(TypedDict):
+    ref: str
+    contact_type: Literal["work_email", "work_phone"]
+    value: str
+    status: Literal[
+        "unverified",
+        "provider_verified",
+        "deliverable_likely",
+        "invalid",
+        "catch_all",
+        "unknown",
+        "suppressed",
+    ]
+    verification_method: Literal["none", "pattern", "mx", "provider", "user"]
+    verified_at: str | None
+    claim_type: SourcedClaimType
+    confidence: float
+    evidence_refs: list[str]
+
+
 class CompanyCandidate(TypedDict):
     ref: str
     name: str
@@ -113,6 +157,8 @@ class AdapterResult(TypedDict):
     companies: NotRequired[list[CompanyCandidate]]
     people: list[Person]
     relationships: list[Relationship]
+    signals: NotRequired[list[Signal]]
+    contact_points: NotRequired[list[ContactPoint]]
 
 
 class AdapterInvocation(TypedDict):

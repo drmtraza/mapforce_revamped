@@ -18,17 +18,25 @@ const TERMINAL: JobStatus[] = ['succeeded', 'partial_success', 'failed', 'cancel
 
 /** Event/audit naming per job type, e.g. research.started vs discovery.started. */
 function naming(jobType: JobType) {
-  return jobType === 'company_discovery'
-    ? {
-        prefix: 'discovery',
-        entityType: 'discovery_job',
-        completedEvent: 'discovery.job.completed' as const,
-      }
-    : {
-        prefix: 'research',
-        entityType: 'research_job',
-        completedEvent: 'research.job.completed' as const,
-      };
+  if (jobType === 'company_discovery') {
+    return {
+      prefix: 'discovery',
+      entityType: 'discovery_job',
+      completedEvent: 'discovery.job.completed' as const,
+    };
+  }
+  if (jobType === 'person_enrichment') {
+    return {
+      prefix: 'enrichment',
+      entityType: 'enrich_job',
+      completedEvent: 'enrichment.job.completed' as const,
+    };
+  }
+  return {
+    prefix: 'research',
+    entityType: 'research_job',
+    completedEvent: 'research.job.completed' as const,
+  };
 }
 
 export interface JobRef {

@@ -46,6 +46,7 @@ export const orgMapRoutes =
             .where('l.tenant_id', '=', ctx.tenantId)
             .where('l.company_id', '=', company.id)
             .where('p.review_status', '!=', 'rejected')
+            .where('p.merged_into_id', 'is', null)
             .limit(500)
             .execute();
           const personIds = people.map((p) => p.id);

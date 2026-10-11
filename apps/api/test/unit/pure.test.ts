@@ -5,6 +5,7 @@ import { decodeCursor, encodeCursor } from '../../src/http/pagination.ts';
 import { evidenceKey, keyBelongsToTenant } from '../../src/modules/evidence/storage.ts';
 import { backoffMs, MAX_DELIVERY_ATTEMPTS } from '../../src/modules/outbox/relay.ts';
 import { confidenceBand } from '../../src/modules/people/confidence.ts';
+import { displayHint, guessedMethod, hashContactValue } from '../../src/modules/contacts/crypto.ts';
 import { normalizePersonName } from '../../src/modules/research/persist.ts';
 import { can, PERMISSIONS } from '../../src/rbac.ts';
 import { baseEnv } from '../support/env.ts';
@@ -117,6 +118,18 @@ describe('outbox backoff', () => {
 describe('normalizePersonName', () => {
   it('folds case, accents and punctuation', () => {
     expect(normalizePersonName('  José   O’Neill-Smith ')).toBe('jose o neill smith');
+  });
+});
+
+describe('contact honesty', () => {
+  it('masks emails and never treats pattern/mx as a verification method that can be verified', () => {
+    expect(displayHint('work_email', 'Avery.Example@Acme.example')).toBe('a***@acme.example');
+    expect(hashContactValue('email', 'Avery.Example@Acme.example')).toBe(
+      hashContactValue('work_email', 'avery.example@acme.example'),
+    );
+    expect(guessedMethod('pattern')).toBe(true);
+    expect(guessedMethod('mx')).toBe(true);
+    expect(guessedMethod('provider')).toBe(false);
   });
 });
 

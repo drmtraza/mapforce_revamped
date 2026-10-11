@@ -1,4 +1,4 @@
-import type { Tx } from '@mapforce/db';
+import type { JobType, Tx } from '@mapforce/db';
 import { AppError } from '../../errors.ts';
 import type { TenantCtx } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
@@ -24,13 +24,15 @@ export async function dailyJobQuotaExceeded(
   ctx: TenantCtx,
   limit: number,
   entity: { action: string; type: string; id: string | null },
+  jobType?: JobType,
 ): Promise<boolean> {
-  const today = await trx
+  let q = trx
     .selectFrom('workflow_jobs')
     .select((eb) => eb.fn.countAll<string>().as('n'))
     .where('tenant_id', '=', ctx.tenantId)
-    .where('created_at', '>=', new Date(Date.now() - 86_400_000))
-    .executeTakeFirstOrThrow();
+    .where('created_at', '>=', new Date(Date.now() - 86_400_000));
+  if (jobType) q = q.where('job_type', '=', jobType);
+  const today = await q.executeTakeFirstOrThrow();
   if (Number(today.n) < limit) return false;
   await recordAudit(trx, {
     tenantId: ctx.tenantId,

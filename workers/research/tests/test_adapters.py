@@ -12,7 +12,11 @@ from temporalio.testing import ActivityEnvironment
 from research_worker.activities import ResearchActivities
 from research_worker.adapters import AdapterFailure, build_registry
 from research_worker.adapters.mock import (
+    LicensedContactsAdapter,
+    MockCareersAdapter,
+    MockContactsAdapter,
     MockPeopleAdapter,
+    MockProcurementAdapter,
     MockRegistryAdapter,
     MockSearchAdapter,
     MockWebAdapter,
@@ -45,6 +49,15 @@ def assert_contract(result: AdapterResult) -> None:
         cited += c["evidence_refs"]
     for candidate in result.get("companies", []):
         cited += candidate["evidence_refs"]
+    for signal in result.get("signals", []):
+        cited += signal["evidence_refs"]
+        if signal["signal_type"] == "hiring":
+            assert signal["implies_budget"] is False
+    for contact in result.get("contact_points", []):
+        cited += contact["evidence_refs"]
+        guessed = contact["verification_method"] in {"none", "pattern", "mx"}
+        if guessed:
+            assert contact["status"] != "provider_verified"
     for p in result["people"]:
         cited += p["evidence_refs"]
     for r in result["relationships"]:
@@ -166,10 +179,20 @@ def test_registry_flags() -> None:
         "mock_people",
         "mock_registry",
         "mock_search",
+        "mock_careers",
+        "mock_procurement",
+        "mock_contacts",
         "company_site",
     }
     assert "brave_search" not in build_registry({}), "Brave stays unregistered without a key"
     assert "brave_search" in build_registry({**off, "BRAVE_SEARCH_API_KEY": "placeholder"})
+    assert "licensed_contacts" not in build_registry({})
+    assert "licensed_contacts" not in build_registry(
+        {**off, "LICENSED_CONTACTS_API_KEY": "placeholder"}
+    )
+    assert "licensed_contacts" in build_registry(
+        {**off, "FEATURE_LICENSED_CONTACTS": "true", "LICENSED_CONTACTS_API_KEY": "placeholder"}
+    )
 
 
 def discovery(text: str, countries: list[str] | None = None) -> AdapterRequest:
@@ -217,3 +240,40 @@ async def test_base_adapter_rejects_unimplemented_interface_methods() -> None:
         assert exc.value.code == "UNSUPPORTED_OPERATION"
         assert exc.value.retryable is False
     assert await adapter.health_check() is True
+
+
+def enrich_request(name: str = "Avery Example", domain: str = "acme.example") -> AdapterRequest:
+    req = request("mock_contacts", "enrich_contact", domain)
+    req["person"] = {"full_name": name}
+    return req
+
+
+async def test_mock_careers_and_procurement_satisfy_contract() -> None:
+    careers = await MockCareersAdapter().run(request("mock_careers", "fetch_intent_signals"))
+    procurement = await MockProcurementAdapter().run(
+        request("mock_procurement", "fetch_intent_signals")
+    )
+    assert_contract(careers)
+    assert_contract(procurement)
+    assert careers["signals"][0]["signal_type"] == "hiring"
+    assert careers["signals"][0]["implies_budget"] is False
+    assert procurement["signals"][0]["signal_type"] == "procurement"
+    assert procurement["signals"][0]["country_code"] in {"US", "GB", "DE", "FR", "IE", "NL"}
+
+
+async def test_mock_contacts_never_mark_pattern_as_verified() -> None:
+    result = await MockContactsAdapter().run(enrich_request())
+    assert_contract(result)
+    contact = result["contact_points"][0]
+    assert contact["status"] == "unverified"
+    assert contact["verification_method"] == "pattern"
+    assert contact["verified_at"] is None
+    assert contact["value"].endswith("@acme.example")
+    assert "verified" not in contact["value"].lower()
+
+
+async def test_licensed_contacts_stays_disabled_even_when_registered() -> None:
+    with pytest.raises(AdapterFailure) as exc:
+        await LicensedContactsAdapter("placeholder").run(enrich_request())
+    assert exc.value.code == "SOURCE_DISABLED"
+    assert exc.value.retryable is False

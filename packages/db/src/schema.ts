@@ -133,7 +133,19 @@ export interface TenantSourceSettingsTable {
   updated_at: GeneratedTimestamp;
 }
 
-export type JobType = 'company_research' | 'company_discovery';
+export type JobType = 'company_research' | 'company_discovery' | 'person_enrichment';
+export type ContactStatus =
+  | 'unverified'
+  | 'provider_verified'
+  | 'deliverable_likely'
+  | 'invalid'
+  | 'catch_all'
+  | 'unknown'
+  | 'suppressed';
+export type VerificationMethod = 'none' | 'pattern' | 'mx' | 'provider' | 'user';
+export type MatchStatus = 'proposed' | 'accepted' | 'rejected';
+export type SignalType = 'hiring' | 'funding' | 'procurement' | 'news' | 'product' | 'other';
+export type SuppressionSubject = 'email' | 'phone' | 'domain' | 'person';
 
 export interface DiscoveryCandidatesTable {
   id: Generated<string>;
@@ -226,6 +238,7 @@ export interface WorkflowJobsTable {
   id: Generated<string>;
   tenant_id: string;
   company_id: string | null;
+  person_id: string | null;
   job_type: JobType;
   query: ColumnType<unknown, string | null | undefined, string | null>;
   status: Generated<JobStatus>;
@@ -325,6 +338,7 @@ export interface PeopleTable {
   canonical_name: string;
   normalized_name: string;
   public_profile_url: string | null;
+  merged_into_id: string | null;
   review_status: Generated<ReviewStatus>;
   reviewed_by: string | null;
   reviewed_at: Timestamp | null;
@@ -395,6 +409,95 @@ export interface RelationshipEvidenceTable {
   tenant_id: string;
 }
 
+export interface PersonAliasesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  person_id: string;
+  alias: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface MatchCandidatesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  person_a_id: string;
+  person_b_id: string;
+  score: Numeric;
+  rationale: string;
+  status: Generated<MatchStatus>;
+  created_at: GeneratedTimestamp;
+  resolved_at: Timestamp | null;
+  resolved_by: string | null;
+}
+
+export interface PersonMergesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  survivor_id: string;
+  absorbed_id: string;
+  match_candidate_id: string | null;
+  actor_user_id: string;
+  created_at: GeneratedTimestamp;
+  undone_at: Timestamp | null;
+}
+
+export interface ContactPointsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  person_id: string;
+  company_id: string | null;
+  contact_type: 'work_email' | 'work_phone';
+  normalized_value_hash: string;
+  display_hint: string;
+  value_ciphertext: Buffer;
+  value_iv: Buffer;
+  value_tag: Buffer;
+  status: ContactStatus;
+  verification_method: VerificationMethod;
+  verified_at: Timestamp | null;
+  claim_type: ClaimType;
+  confidence: Numeric;
+  source_key: string | null;
+  source_evidence_id: string | null;
+  workflow_job_id: string | null;
+  observed_at: GeneratedTimestamp;
+  created_at: GeneratedTimestamp;
+}
+
+export interface ConsentSuppressionsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  subject_type: SuppressionSubject;
+  value_hash: string;
+  display_hint: string;
+  reason: string | null;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface IntentSignalsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  signal_type: SignalType;
+  title: string;
+  summary: string;
+  implies_budget: Generated<boolean>;
+  claim_type: ClaimType;
+  confidence: Numeric;
+  country_code: string | null;
+  observed_at: Timestamp;
+  source_key: string;
+  workflow_job_id: string | null;
+  created_at: GeneratedTimestamp;
+}
+
+export interface SignalEvidenceTable {
+  signal_id: string;
+  evidence_record_id: string;
+  tenant_id: string;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -423,4 +526,11 @@ export interface Database {
   person_reviews: PersonReviewsTable;
   relationships: RelationshipsTable;
   relationship_evidence: RelationshipEvidenceTable;
+  person_aliases: PersonAliasesTable;
+  match_candidates: MatchCandidatesTable;
+  person_merges: PersonMergesTable;
+  contact_points: ContactPointsTable;
+  consent_suppressions: ConsentSuppressionsTable;
+  intent_signals: IntentSignalsTable;
+  signal_evidence: SignalEvidenceTable;
 }

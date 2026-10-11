@@ -8,6 +8,10 @@ const ROLES = {
   cancelJobs: ['owner', 'admin', 'manager', 'researcher'],
   writeCompanies: ['owner', 'admin', 'manager', 'researcher', 'representative'],
   writeImports: ['owner', 'admin', 'manager', 'researcher'],
+  reviewPeople: ['owner', 'admin', 'manager', 'researcher'],
+  mergePeople: ['owner', 'admin', 'manager', 'researcher'],
+  startEnrich: ['owner', 'admin', 'manager', 'researcher'],
+  writeSuppression: ['owner', 'admin', 'manager'],
 } as const satisfies Record<string, readonly WorkspaceRole[]>;
 
 export function allowed(role: WorkspaceRole | null, action: keyof typeof ROLES): boolean {

@@ -7,6 +7,7 @@ import { requireTenant } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
 import { loadCompany } from '../companies/routes.ts';
 import { confidenceBand } from './confidence.ts';
+import { acceptMatch, splitMerge } from './merge.ts';
 
 const Confidence = z.object({
   value: z.number(),
@@ -63,11 +64,44 @@ const PersonDetail = z.object({
       department: z.string().nullable(),
       seniority: z.string().nullable(),
       status: z.string(),
+      start_date: z.string().nullable(),
+      end_date: z.string().nullable(),
     }),
   ),
+  aliases: z.array(z.string()),
   claims: z.array(Claim),
-  contact_points: z.array(z.never()),
+  contact_points: z.array(
+    z.object({
+      id: z.string(),
+      contact_type: z.string(),
+      display_hint: z.string(),
+      status: z.string(),
+      verification_method: z.string(),
+      verified_at: z.string().nullable(),
+      claim_type: z.string(),
+      confidence: Confidence,
+      source_key: z.string().nullable(),
+    }),
+  ),
   contact_points_note: z.string(),
+  match_candidates: z.array(
+    z.object({
+      id: z.string(),
+      other_person_id: z.string(),
+      other_name: z.string(),
+      score: z.number(),
+      rationale: z.string(),
+      status: z.string(),
+    }),
+  ),
+  merges: z.array(
+    z.object({
+      id: z.string(),
+      survivor_id: z.string(),
+      absorbed_id: z.string(),
+      undone_at: z.string().nullable(),
+    }),
+  ),
   reviews: z.array(
     z.object({
       decision: z.string(),
@@ -157,6 +191,7 @@ export const peopleRoutes =
             ])
             .where('l.tenant_id', '=', ctx.tenantId)
             .where('l.company_id', '=', request.params.id)
+            .where('p.merged_into_id', 'is', null)
             .orderBy('p.canonical_name')
             .limit(500)
             .execute();
@@ -190,17 +225,104 @@ export const peopleRoutes =
         return withContext(db, ctx, async (trx) => {
           const person = await trx
             .selectFrom('people')
-            .select(['id', 'canonical_name', 'public_profile_url', 'review_status', 'version'])
+            .select([
+              'id',
+              'canonical_name',
+              'public_profile_url',
+              'review_status',
+              'version',
+              'merged_into_id',
+            ])
             .where('tenant_id', '=', ctx.tenantId)
             .where('id', '=', request.params.id)
             .executeTakeFirst();
-          if (!person) throw notFound('Person');
+          if (!person || person.merged_into_id) throw notFound('Person');
+
+          const absorbed = await trx
+            .selectFrom('people')
+            .select('id')
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('merged_into_id', '=', person.id)
+            .execute();
+          const personIds = [person.id, ...absorbed.map((a) => a.id)];
 
           const roles = await trx
             .selectFrom('employment_roles')
-            .select(['id', 'company_id', 'title', 'department', 'seniority', 'status'])
+            .select([
+              'id',
+              'company_id',
+              'title',
+              'department',
+              'seniority',
+              'status',
+              'start_date',
+              'end_date',
+            ])
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('person_id', 'in', personIds)
+            .orderBy('status')
+            .execute();
+          const aliases = await trx
+            .selectFrom('person_aliases')
+            .select('alias')
             .where('tenant_id', '=', ctx.tenantId)
             .where('person_id', '=', person.id)
+            .execute();
+          const contacts = await trx
+            .selectFrom('contact_points')
+            .select([
+              'id',
+              'contact_type',
+              'display_hint',
+              'status',
+              'verification_method',
+              'verified_at',
+              'claim_type',
+              'confidence',
+              'source_key',
+            ])
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('person_id', 'in', personIds)
+            .orderBy('created_at', 'desc')
+            .execute();
+          const rawMatches = await trx
+            .selectFrom('match_candidates')
+            .select(['id', 'person_a_id', 'person_b_id', 'score', 'rationale', 'status'])
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('status', '=', 'proposed')
+            .where((eb) =>
+              eb.or([eb('person_a_id', '=', person.id), eb('person_b_id', '=', person.id)]),
+            )
+            .execute();
+          const otherIds = rawMatches.map((m) =>
+            m.person_a_id === person.id ? m.person_b_id : m.person_a_id,
+          );
+          const otherPeople = otherIds.length
+            ? await trx
+                .selectFrom('people')
+                .select(['id', 'canonical_name'])
+                .where('tenant_id', '=', ctx.tenantId)
+                .where('id', 'in', otherIds)
+                .execute()
+            : [];
+          const otherName = new Map(otherPeople.map((p) => [p.id, p.canonical_name]));
+          const matches = rawMatches.map((m) => {
+            const otherId = m.person_a_id === person.id ? m.person_b_id : m.person_a_id;
+            return {
+              id: m.id,
+              other_person_id: otherId,
+              other_name: otherName.get(otherId) ?? 'Unknown',
+              score: m.score,
+              rationale: m.rationale,
+              status: m.status,
+            };
+          });
+          const merges = await trx
+            .selectFrom('person_merges')
+            .select(['id', 'survivor_id', 'absorbed_id', 'undone_at'])
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('survivor_id', '=', person.id)
+            .where('undone_at', 'is', null)
             .execute();
           const subjectIds = [person.id, ...roles.map((r) => r.id)];
           const claims = await trx
@@ -236,8 +358,16 @@ export const peopleRoutes =
             .execute();
 
           return {
-            ...person,
-            roles,
+            id: person.id,
+            canonical_name: person.canonical_name,
+            public_profile_url: person.public_profile_url,
+            review_status: person.review_status,
+            version: person.version,
+            roles: roles.map((r) => ({
+              ...r,
+              start_date: r.start_date ? String(r.start_date).slice(0, 10) : null,
+              end_date: r.end_date ? String(r.end_date).slice(0, 10) : null,
+            })),
             claims: claims.map((c) => ({
               id: c.id,
               subject_type: c.subject_type,
@@ -250,9 +380,32 @@ export const peopleRoutes =
               observed_at: c.observed_at.toISOString(),
               evidence: evidence.get(c.id) ?? [],
             })),
-            contact_points: [],
+            aliases: aliases.map((a) => a.alias),
+            contact_points: contacts.map((c) => ({
+              id: c.id,
+              contact_type: c.contact_type,
+              display_hint: c.display_hint,
+              status: c.status,
+              verification_method: c.verification_method,
+              verified_at: c.verified_at?.toISOString() ?? null,
+              claim_type: c.claim_type,
+              confidence: conf(c.confidence),
+              source_key: c.source_key,
+            })),
             contact_points_note:
-              'No contact points collected. Contact enrichment and verification arrive in Phase 3.',
+              'A contact is never labelled verified without a documented verification method and source. Pattern guesses stay unverified.',
+            match_candidates: matches.map((m) => ({
+              id: m.id,
+              other_person_id: m.other_person_id,
+              other_name: m.other_name,
+              score: Number(m.score),
+              rationale: m.rationale,
+              status: m.status,
+            })),
+            merges: merges.map((m) => ({
+              ...m,
+              undone_at: m.undone_at?.toISOString() ?? null,
+            })),
             reviews: reviews.map((r) => ({ ...r, created_at: r.created_at.toISOString() })),
           };
         });
@@ -325,6 +478,150 @@ export const peopleRoutes =
           });
           return updated;
         });
+      },
+    );
+
+    app.get(
+      '/people/match-candidates',
+      {
+        schema: {
+          tags: ['people'],
+          response: {
+            200: z.object({
+              data: z.array(
+                z.object({
+                  id: z.string(),
+                  person_a_id: z.string(),
+                  person_b_id: z.string(),
+                  person_a_name: z.string(),
+                  person_b_name: z.string(),
+                  score: z.number(),
+                  rationale: z.string(),
+                  status: z.string(),
+                }),
+              ),
+            }),
+          },
+        },
+      },
+      async (request) => {
+        const ctx = await requireTenant(db, request, 'people.read');
+        const rows = await withContext(db, ctx, async (trx) =>
+          trx
+            .selectFrom('match_candidates as m')
+            .innerJoin('people as a', 'a.id', 'm.person_a_id')
+            .innerJoin('people as b', 'b.id', 'm.person_b_id')
+            .select([
+              'm.id',
+              'm.person_a_id',
+              'm.person_b_id',
+              'a.canonical_name as person_a_name',
+              'b.canonical_name as person_b_name',
+              'm.score',
+              'm.rationale',
+              'm.status',
+            ])
+            .where('m.tenant_id', '=', ctx.tenantId)
+            .where('m.status', '=', 'proposed')
+            .orderBy('m.created_at', 'desc')
+            .limit(100)
+            .execute(),
+        );
+        return {
+          data: rows.map((r) => ({ ...r, score: Number(r.score) })),
+        };
+      },
+    );
+
+    app.post(
+      '/people/match-candidates/:id/accept',
+      {
+        schema: {
+          tags: ['people'],
+          params: z.object({ id: z.uuid() }),
+          body: z.object({ survivor_person_id: z.uuid() }),
+          response: {
+            200: z.object({
+              id: z.string(),
+              survivor_id: z.string(),
+              absorbed_id: z.string(),
+            }),
+          },
+        },
+      },
+      async (request) => {
+        const ctx = await requireTenant(db, request, 'people.merge');
+        return withContext(db, ctx, async (trx) =>
+          acceptMatch(trx, {
+            tenantId: ctx.tenantId,
+            userId: ctx.userId,
+            correlationId: ctx.correlationId,
+            matchId: request.params.id,
+            survivorId: request.body.survivor_person_id,
+          }),
+        );
+      },
+    );
+
+    app.post(
+      '/people/match-candidates/:id/reject',
+      {
+        schema: {
+          tags: ['people'],
+          params: z.object({ id: z.uuid() }),
+          response: { 200: z.object({ id: z.string(), status: z.string() }) },
+        },
+      },
+      async (request) => {
+        const ctx = await requireTenant(db, request, 'people.merge');
+        return withContext(db, ctx, async (trx) => {
+          const updated = await trx
+            .updateTable('match_candidates')
+            .set({ status: 'rejected', resolved_at: new Date(), resolved_by: ctx.userId })
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('id', '=', request.params.id)
+            .where('status', '=', 'proposed')
+            .returning(['id', 'status'])
+            .executeTakeFirst();
+          if (!updated) throw notFound('Match candidate');
+          await recordAudit(trx, {
+            tenantId: ctx.tenantId,
+            actorUserId: ctx.userId,
+            action: 'person.match_rejected',
+            entityType: 'match_candidate',
+            entityId: updated.id,
+            correlationId: ctx.correlationId,
+          });
+          return updated;
+        });
+      },
+    );
+
+    app.post(
+      '/people/merges/:id/split',
+      {
+        schema: {
+          tags: ['people'],
+          params: z.object({ id: z.uuid() }),
+          response: {
+            200: z.object({
+              id: z.string(),
+              survivor_id: z.string(),
+              absorbed_id: z.string(),
+            }),
+          },
+        },
+      },
+      async (request) => {
+        const ctx = await requireTenant(db, request, 'people.merge');
+        return withContext(db, ctx, async (trx) =>
+          splitMerge(trx, {
+            tenantId: ctx.tenantId,
+            userId: ctx.userId,
+            correlationId: ctx.correlationId,
+            mergeId: request.params.id,
+          }),
+        );
       },
     );
   };

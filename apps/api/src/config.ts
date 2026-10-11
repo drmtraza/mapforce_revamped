@@ -51,6 +51,8 @@ const ConfigSchema = z
 
     TENANT_DAILY_RESEARCH_JOB_LIMIT: z.coerce.number().int().min(1).max(100_000).default(100),
     TENANT_DAILY_CRAWL_PAGE_LIMIT: z.coerce.number().int().min(0).max(1_000_000).default(200),
+    TENANT_DAILY_ENRICH_LIMIT: z.coerce.number().int().min(0).max(100_000).default(50),
+    CONTACT_FIELD_KEY: z.string().min(32, 'CONTACT_FIELD_KEY must be at least 32 characters'),
     RATE_LIMIT_PER_MINUTE: z.coerce.number().int().min(1).max(100_000).default(300),
     FEATURE_MOCK_PROVIDERS: z
       .enum(['true', 'false'])

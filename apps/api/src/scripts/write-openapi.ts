@@ -18,6 +18,7 @@ const config = loadConfig({
   S3_BUCKET: 'evidence',
   S3_ACCESS_KEY_ID: 'unused',
   S3_SECRET_ACCESS_KEY: 'unused',
+  CONTACT_FIELD_KEY: 'openapi-generation-contact-field-key',
 });
 const unavailable = async (): Promise<never> => {
   throw new Error('not available during OpenAPI generation');
@@ -33,7 +34,12 @@ const app = await buildApp({
   db,
   storage,
   idp: { createLogin: unavailable, completeLogin: unavailable },
-  dispatcher: { start: unavailable, startDiscovery: unavailable, cancel: unavailable },
+  dispatcher: {
+    start: unavailable,
+    startDiscovery: unavailable,
+    startEnrichment: unavailable,
+    cancel: unavailable,
+  },
   logger: false,
 });
 await app.ready();

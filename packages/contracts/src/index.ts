@@ -48,6 +48,8 @@ export function validateAdapterResult(data: unknown): ValidationResult<AdapterRe
   if (!structural.ok) return structural;
   const r = structural.value;
   const companies = r.companies ?? [];
+  const signals = r.signals ?? [];
+  const contacts = r.contact_points ?? [];
   const errors: string[] = [];
 
   if (r.status === 'failed') {
@@ -57,7 +59,9 @@ export function validateAdapterResult(data: unknown): ValidationResult<AdapterRe
       r.company_claims.length ||
       companies.length ||
       r.people.length ||
-      r.relationships.length
+      r.relationships.length ||
+      signals.length ||
+      contacts.length
     ) {
       errors.push('/status failed results must not carry data');
     }
@@ -66,6 +70,12 @@ export function validateAdapterResult(data: unknown): ValidationResult<AdapterRe
   }
   if (companies.length && r.operation !== 'discover_companies') {
     errors.push('/companies only allowed for discover_companies');
+  }
+  if (signals.length && r.operation !== 'fetch_intent_signals') {
+    errors.push('/signals only allowed for fetch_intent_signals');
+  }
+  if (contacts.length && r.operation !== 'enrich_contact') {
+    errors.push('/contact_points only allowed for enrich_contact');
   }
 
   const evidenceRefs = new Set<string>();
@@ -91,6 +101,30 @@ export function validateAdapterResult(data: unknown): ValidationResult<AdapterRe
     companyDomains.add(c.domain);
   });
   r.people.forEach((p, i) => checkEvidence(`/people/${i}`, p.evidence_refs));
+  signals.forEach((s, i) => {
+    checkEvidence(`/signals/${i}`, s.evidence_refs);
+    if (s.signal_type === 'hiring' && s.implies_budget) {
+      errors.push(`/signals/${i} hiring must not imply budget`);
+    }
+  });
+  contacts.forEach((c, i) => {
+    checkEvidence(`/contact_points/${i}`, c.evidence_refs);
+    const guessed =
+      c.verification_method === 'pattern' ||
+      c.verification_method === 'mx' ||
+      c.verification_method === 'none';
+    if (guessed && c.status === 'provider_verified') {
+      errors.push(`/contact_points/${i} guessed address cannot be provider_verified`);
+    }
+    if (
+      c.status === 'provider_verified' &&
+      (c.verification_method !== 'provider' || !c.verified_at)
+    ) {
+      errors.push(
+        `/contact_points/${i} provider_verified requires method provider and verified_at`,
+      );
+    }
+  });
   r.relationships.forEach((rel, i) => {
     checkEvidence(`/relationships/${i}`, rel.evidence_refs);
     if (!personRefs.has(rel.subject_ref)) errors.push(`/relationships/${i} unknown subject_ref`);

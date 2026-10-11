@@ -2,7 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { validateOrgMapV2 } from '@mapforce/contracts';
 import { relayOnce } from '../../src/modules/outbox/relay.ts';
 import { createControlActivities } from '../../src/temporal/activities.ts';
-import { peopleResult, registryFailure, webResult } from '../support/adapter-fixtures.ts';
+import {
+  careersResult,
+  peopleResult,
+  procurementResult,
+  registryFailure,
+  webResult,
+} from '../support/adapter-fixtures.ts';
 import { call, signIn, startTestEnv, type Actor, type TestEnv } from '../support/harness.ts';
 
 const DOMAIN = 'acme.example';
@@ -33,6 +39,16 @@ async function runMockWorkflow(tenantId: string, job: string, company: string) {
       ...common,
       sourceKey: 'mock_people',
       result: peopleResult(DOMAIN),
+    }),
+    await acts.persistSourceResult({
+      ...common,
+      sourceKey: 'mock_careers',
+      result: careersResult(DOMAIN),
+    }),
+    await acts.persistSourceResult({
+      ...common,
+      sourceKey: 'mock_procurement',
+      result: procurementResult(DOMAIN),
     }),
   ];
   return acts.finalizeJob({ ...ref, outcomes, cancelled: false });
@@ -209,15 +225,18 @@ describe('first milestone journey', () => {
       industry: 'Software',
       country_code: 'GB',
     });
-    expect(res.body.counts).toEqual({ evidence: 2, people: 3 });
+    expect(res.body.counts).toEqual({ evidence: 4, people: 3 });
   });
 
   it('lists source evidence with provenance and stores content under the tenant prefix', async () => {
     const res = await call(env, alice, 'GET', `/api/v1/companies/${companyId}/evidence`);
     expect(res.status).toBe(200);
-    expect(res.body.data).toHaveLength(2);
+    expect(res.body.data).toHaveLength(4);
+    const onSite = res.body.data.filter((e: { source_url: string }) =>
+      e.source_url.startsWith('https://acme.example/'),
+    );
+    expect(onSite.length).toBeGreaterThanOrEqual(2);
     for (const e of res.body.data) {
-      expect(e.source_url).toMatch(/^https:\/\/acme\.example\//);
       expect(e.content_hash).toMatch(/^sha256:[0-9a-f]{64}$/);
       expect(e.is_mock).toBe(true);
       expect(e.has_stored_content).toBe(true);
@@ -319,7 +338,7 @@ describe('first milestone journey', () => {
       result: peopleResult(DOMAIN),
     });
     const res = await call(env, alice, 'GET', `/api/v1/companies/${companyId}`);
-    expect(res.body.counts).toEqual({ evidence: 2, people: 3 });
+    expect(res.body.counts).toEqual({ evidence: 4, people: 3 });
   });
 });
 

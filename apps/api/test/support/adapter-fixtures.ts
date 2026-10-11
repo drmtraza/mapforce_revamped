@@ -203,6 +203,112 @@ export function siteResult(domain: string, url = `https://${domain}/`): AdapterR
   };
 }
 
+export function careersResult(domain: string): AdapterResult {
+  const excerpt = '2 engineering roles listed (synthetic). Hiring is not evidence of budget.';
+  return {
+    ...base('mock_careers', 'fetch_intent_signals'),
+    usage: { request_count: 1, units: 1, unit_type: 'records' },
+    evidence: [
+      {
+        ref: 'ev-jobs',
+        source_url: `https://${domain}/careers`,
+        fetched_at: FETCHED,
+        published_at: null,
+        content_type: 'text/html',
+        content_hash: hash(`${domain}:careers`),
+        excerpt,
+        normalized_content: { openings: 2 },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    signals: [
+      {
+        ref: 'sig-hire',
+        signal_type: 'hiring',
+        title: 'Engineering roles posted (synthetic)',
+        summary: excerpt,
+        implies_budget: false,
+        claim_type: 'source_fact',
+        confidence: 0.6,
+        country_code: 'GB',
+        observed_at: FETCHED,
+        evidence_refs: ['ev-jobs'],
+      },
+    ],
+  };
+}
+
+export function procurementResult(domain: string): AdapterResult {
+  const excerpt = 'Contracts Finder lists a proposed software contract (synthetic).';
+  return {
+    ...base('mock_procurement', 'fetch_intent_signals'),
+    usage: { request_count: 1, units: 1, unit_type: 'records' },
+    evidence: [
+      {
+        ref: 'ev-tender',
+        source_url: 'https://contractsfinder.example/notice/000001',
+        fetched_at: FETCHED,
+        published_at: null,
+        content_type: 'text/html',
+        content_hash: hash(`${domain}:tender`),
+        excerpt,
+        normalized_content: { notice: '000001' },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    signals: [
+      {
+        ref: 'sig-proc',
+        signal_type: 'procurement',
+        title: 'Proposed software contract (synthetic)',
+        summary: excerpt,
+        implies_budget: false,
+        claim_type: 'provider_fact',
+        confidence: 0.4,
+        country_code: 'GB',
+        observed_at: FETCHED,
+        evidence_refs: ['ev-tender'],
+      },
+    ],
+  };
+}
+
+export function contactsResult(
+  domain: string,
+  email = 'avery.example@acme.example',
+): AdapterResult {
+  return {
+    ...base('mock_contacts', 'enrich_contact'),
+    usage: { request_count: 1, units: 1, unit_type: 'records' },
+    evidence: [
+      {
+        ref: 'ev-pattern',
+        source_url: 'https://pattern.mock.example/guess',
+        fetched_at: FETCHED,
+        published_at: null,
+        content_type: 'application/json',
+        content_hash: hash(`${domain}:pattern`),
+        excerpt: `Pattern guess ${email}; not verified.`,
+        normalized_content: { method: 'pattern' },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    contact_points: [
+      {
+        ref: 'ct-email',
+        contact_type: 'work_email',
+        value: email,
+        status: 'unverified',
+        verification_method: 'pattern',
+        verified_at: null,
+        claim_type: 'provider_fact',
+        confidence: 0.3,
+        evidence_refs: ['ev-pattern'],
+      },
+    ],
+  };
+}
+
 export function registryFailure(): AdapterResult {
   return {
     ...base('mock_registry', 'fetch_registry_record'),

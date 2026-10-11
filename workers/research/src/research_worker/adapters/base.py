@@ -6,7 +6,7 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from typing import Any, Protocol
 
-from ..models import AdapterRequest, AdapterResult, CompanyRef, DiscoveryQuery, Operation
+from ..models import AdapterRequest, AdapterResult, CompanyRef, DiscoveryQuery, Operation, PersonRef
 
 
 class AdapterFailure(Exception):
@@ -54,6 +54,13 @@ def require_company(request: AdapterRequest) -> CompanyRef:
     return company
 
 
+def require_person(request: AdapterRequest) -> PersonRef:
+    person = request.get("person")
+    if not person or not person["full_name"].strip():
+        raise AdapterFailure("INVALID_REQUEST", "This operation needs a person", retryable=False)
+    return person
+
+
 def require_query(request: AdapterRequest) -> DiscoveryQuery:
     query = request.get("query")
     if not query or not query["text"].strip():
@@ -65,9 +72,7 @@ class BaseAdapter:
     """Implements the full adapter interface; providers override only what they support.
 
     Interface methods: discover_companies, discover_people, fetch_company_evidence,
-    fetch_intent_signals, enrich_contact, health_check (plus fetch_registry_record).
-    `fetch_intent_signals` and `enrich_contact` have no result contract until Phase 3, so
-    they cannot be dispatched through `run` yet.
+    fetch_registry_record, fetch_intent_signals, enrich_contact, health_check.
     """
 
     source_key: str
@@ -84,6 +89,10 @@ class BaseAdapter:
             return await self.discover_people(request)
         if op == "fetch_company_evidence":
             return await self.fetch_company_evidence(request)
+        if op == "fetch_intent_signals":
+            return await self.fetch_intent_signals(request)
+        if op == "enrich_contact":
+            return await self.enrich_contact(request)
         return await self.fetch_registry_record(request)
 
     async def health_check(self) -> bool:

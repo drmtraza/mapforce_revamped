@@ -11,6 +11,7 @@ import type {
   AdapterInvocation,
   AdapterRequest,
   DiscoveryWorkflowInput,
+  EnrichmentWorkflowInput,
   PythonActivities,
   ResearchWorkflowInput,
   ResearchWorkflowResult,
@@ -161,6 +162,58 @@ export async function researchCompanyWorkflow(
       ),
     ),
   );
+}
+
+/**
+ * Enriches one person. Sources run in series (waterfall): once a cheaper source
+ * persists evidence, remaining licensed/paid sources are skipped to save budget.
+ */
+export async function enrichPersonWorkflow(
+  input: EnrichmentWorkflowInput,
+): Promise<ResearchWorkflowResult> {
+  const ref = { tenantId: input.tenantId, jobId: input.jobId, correlationId: input.correlationId };
+  const python = pythonActivities(input.pythonTaskQueue);
+  return runJob(ref, async () => {
+    const outcomes: SourceOutcome[] = [];
+    let gotContact = false;
+    for (const s of input.sources) {
+      if (gotContact && s.sourceKey === 'licensed_contacts') {
+        await control.recordSourceFailure({
+          ...ref,
+          sourceKey: s.sourceKey,
+          attempts: 0,
+          errorCode: 'BUDGET_SKIPPED',
+          errorSummary: 'Skipped after a prior source already returned a contact.',
+        });
+        outcomes.push({ sourceKey: s.sourceKey, status: 'cancelled', errorCode: 'BUDGET_SKIPPED' });
+        continue;
+      }
+      const outcome = await runSource(
+        ref,
+        s,
+        {
+          source_key: s.sourceKey,
+          operation: s.operation,
+          company: { domain: input.domain, name: input.companyName },
+          person: { full_name: input.personName },
+          budget: budgetFor(s, input.budget),
+          correlation_id: input.correlationId,
+        },
+        python,
+        (invocation) =>
+          control.persistSourceResult({
+            ...ref,
+            companyId: input.companyId,
+            sourceKey: s.sourceKey,
+            attempts: invocation.attempt,
+            result: invocation.result,
+          }),
+      );
+      outcomes.push(outcome);
+      if (outcome.status === 'succeeded' && (outcome.evidenceCount ?? 0) > 0) gotContact = true;
+    }
+    return outcomes;
+  });
 }
 
 /** Searches discovery sources for candidate companies; candidates are reviewed by a person. */

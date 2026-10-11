@@ -11,6 +11,7 @@ import { useApi, useWorkspaceRole } from '@/lib/use-api';
 
 type Sources = ApiResponse<'/api/v1/sources', 'get'>;
 type DeadLetters = ApiResponse<'/api/v1/dead-letters', 'get'>;
+type Suppressions = ApiResponse<'/api/v1/suppressions', 'get'>;
 type Source = Sources['data'][number];
 
 export default function SettingsPage() {
@@ -18,8 +19,13 @@ export default function SettingsPage() {
   const role = useWorkspaceRole(workspaceId);
   const sources = useApi<Sources>('/api/v1/sources', workspaceId);
   const letters = useApi<DeadLetters>('/api/v1/dead-letters?limit=50', workspaceId);
+  const suppressions = useApi<Suppressions>('/api/v1/suppressions', workspaceId);
   const canManageSources = allowed(role, 'manageSources');
   const canReplay = allowed(role, 'manageDeadLetters');
+  const canSuppress = allowed(role, 'writeSuppression');
+  const [suppressType, setSuppressType] = useState<'email' | 'phone' | 'domain'>('email');
+  const [suppressValue, setSuppressValue] = useState('');
+  const [suppressReason, setSuppressReason] = useState('');
   const [error, setError] = useState<unknown>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
 
@@ -61,8 +67,9 @@ export default function SettingsPage() {
         <h2 id="sources">Sources</h2>
         <p className="muted small">
           The platform owner controls the global kill switch. Workspace owners and admins opt in to
-          sources that are off by default (the public company-site crawler). Brave Search stays
-          unavailable until an operator enables it and supplies an API key.
+          sources that are off by default (the public company-site crawler). Brave Search and the
+          licensed contact provider stay unavailable until an operator enables them and supplies
+          credentials (D12 / D14).
         </p>
         {sources.loading ? <Loading /> : null}
         <ErrorNotice error={sources.error ?? error} />
@@ -174,6 +181,80 @@ export default function SettingsPage() {
               ))}
             </tbody>
           </table>
+        ) : null}
+      </section>
+
+      <section aria-labelledby="suppressions" className="card">
+        <h2 id="suppressions">Suppression list</h2>
+        <p className="muted small">
+          Suppressed addresses, phones and domains override enrichment, export and outreach. Values
+          are stored as hashes; only a hint is shown.
+        </p>
+        {canSuppress ? (
+          <form
+            className="form-stack"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setError(null);
+              try {
+                await api('/api/v1/suppressions', {
+                  method: 'POST',
+                  workspaceId,
+                  body: {
+                    subject_type: suppressType,
+                    value: suppressValue.trim(),
+                    ...(suppressReason.trim() ? { reason: suppressReason.trim() } : {}),
+                  },
+                });
+                setSuppressValue('');
+                setSuppressReason('');
+                suppressions.reload();
+              } catch (err) {
+                setError(err);
+              }
+            }}
+          >
+            <label htmlFor="suppress-type">Subject</label>
+            <select
+              id="suppress-type"
+              value={suppressType}
+              onChange={(e) => setSuppressType(e.target.value as 'email' | 'phone' | 'domain')}
+            >
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+              <option value="domain">Domain</option>
+            </select>
+            <label htmlFor="suppress-value">Value</label>
+            <input
+              id="suppress-value"
+              value={suppressValue}
+              onChange={(e) => setSuppressValue(e.target.value)}
+              required
+            />
+            <label htmlFor="suppress-reason">Reason (optional)</label>
+            <input
+              id="suppress-reason"
+              value={suppressReason}
+              onChange={(e) => setSuppressReason(e.target.value)}
+            />
+            <button type="submit" className="button button-primary">
+              Add suppression
+            </button>
+          </form>
+        ) : null}
+        <ErrorNotice error={suppressions.error} />
+        {suppressions.data && suppressions.data.data.length === 0 ? (
+          <Empty>No suppressions.</Empty>
+        ) : null}
+        {suppressions.data && suppressions.data.data.length > 0 ? (
+          <ul className="list">
+            {suppressions.data.data.map((s) => (
+              <li key={s.id}>
+                {s.subject_type} · {s.display_hint}
+                {s.reason ? <span className="muted"> · {s.reason}</span> : null}
+              </li>
+            ))}
+          </ul>
         ) : null}
       </section>
     </>

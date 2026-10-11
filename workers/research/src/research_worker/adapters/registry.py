@@ -5,7 +5,16 @@ import os
 from .base import SourceAdapter
 from .brave_search import BraveSearchAdapter
 from .company_site import CompanySiteAdapter, CrawlerSettings
-from .mock import MockPeopleAdapter, MockRegistryAdapter, MockSearchAdapter, MockWebAdapter
+from .mock import (
+    LicensedContactsAdapter,
+    MockCareersAdapter,
+    MockContactsAdapter,
+    MockPeopleAdapter,
+    MockProcurementAdapter,
+    MockRegistryAdapter,
+    MockSearchAdapter,
+    MockWebAdapter,
+)
 
 DEFAULT_CRAWLER_INFO_URL = "https://example.invalid/mapforce-bot"
 
@@ -26,7 +35,13 @@ def build_registry(env: dict[str, str] | None = None) -> dict[str, SourceAdapter
             MockPeopleAdapter(),
             MockRegistryAdapter(),
             MockSearchAdapter(),
+            MockCareersAdapter(),
+            MockProcurementAdapter(),
+            MockContactsAdapter(),
         ]
+    licensed_key = env.get("LICENSED_CONTACTS_API_KEY", "").strip()
+    if _flag(env, "FEATURE_LICENSED_CONTACTS", "false") and licensed_key:
+        adapters.append(LicensedContactsAdapter(licensed_key))
     if _flag(env, "FEATURE_COMPANY_SITE_CRAWLER", "true"):
         info_url = env.get("CRAWLER_INFO_URL", "").strip() or DEFAULT_CRAWLER_INFO_URL
         adapters.append(

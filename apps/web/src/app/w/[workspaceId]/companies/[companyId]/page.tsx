@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback } from 'react';
 import type { OrgMapV2 } from '@mapforce/contracts';
-import { ConfidenceBadge, StatusBadge } from '@/components/badges';
+import { ClaimTypeBadge, ConfidenceBadge, StatusBadge } from '@/components/badges';
 import { EvidenceList, formatDate } from '@/components/evidence-list';
 import { Empty, ErrorNotice, Loading } from '@/components/feedback';
 import { OrgMapView } from '@/components/org-map';
@@ -16,6 +16,7 @@ type Company = ApiResponse<'/api/v1/companies/{id}', 'get'>;
 type Evidence = ApiResponse<'/api/v1/companies/{id}/evidence', 'get'>;
 type People = ApiResponse<'/api/v1/companies/{id}/people', 'get'>;
 type Freshness = ApiResponse<'/api/v1/companies/{id}/source-freshness', 'get'>;
+type Signals = ApiResponse<'/api/v1/companies/{id}/signals', 'get'>;
 
 export default function CompanyPage() {
   const { workspaceId, companyId } = useParams<{ workspaceId: string; companyId: string }>();
@@ -25,19 +26,22 @@ export default function CompanyPage() {
   const people = useApi<People>(`${base}/people`, workspaceId);
   const orgMap = useApi<OrgMapV2>(`${base}/org-map`, workspaceId);
   const freshness = useApi<Freshness>(`${base}/source-freshness`, workspaceId);
+  const signals = useApi<Signals>(`${base}/signals`, workspaceId);
 
   const { reload: reloadCompany } = company;
   const { reload: reloadEvidence } = evidence;
   const { reload: reloadPeople } = people;
   const { reload: reloadMap } = orgMap;
   const { reload: reloadFreshness } = freshness;
+  const { reload: reloadSignals } = signals;
   const refresh = useCallback(() => {
     reloadCompany();
     reloadEvidence();
     reloadPeople();
     reloadMap();
     reloadFreshness();
-  }, [reloadCompany, reloadEvidence, reloadPeople, reloadMap, reloadFreshness]);
+    reloadSignals();
+  }, [reloadCompany, reloadEvidence, reloadPeople, reloadMap, reloadFreshness, reloadSignals]);
 
   if (company.loading && !company.data) return <Loading />;
   if (company.error) return <ErrorNotice error={company.error} />;
@@ -115,6 +119,40 @@ export default function CompanyPage() {
         initialJobId={company.data.latest_job?.id ?? null}
         onFinished={refresh}
       />
+
+      <section aria-labelledby="signals" className="card">
+        <h2 id="signals">Signals</h2>
+        <p className="muted small">
+          Hiring activity is not evidence of budget. Every signal cites its source.
+        </p>
+        <ErrorNotice error={signals.error} />
+        {signals.data && signals.data.data.length === 0 ? <Empty>No signals yet.</Empty> : null}
+        {signals.data && signals.data.data.length > 0 ? (
+          <ul className="list">
+            {signals.data.data.map((s) => (
+              <li key={s.id} className="claim">
+                <p>
+                  <strong>{s.title}</strong> <StatusBadge status={s.signal_type} />{' '}
+                  <ClaimTypeBadge type={s.claim_type} />
+                </p>
+                <p>{s.summary}</p>
+                <p className="muted small">
+                  Implies budget: {s.implies_budget ? 'yes' : 'no'}
+                  {s.country_code ? ` · ${s.country_code}` : ''} · {formatDate(s.observed_at)}
+                </p>
+                {s.evidence.map((e) => (
+                  <p key={e.id} className="muted small">
+                    <a href={e.source_url} target="_blank" rel="noopener noreferrer nofollow">
+                      {e.source_url}
+                    </a>
+                    {e.excerpt ? ` — ${e.excerpt}` : ''}
+                  </p>
+                ))}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </section>
 
       <section aria-labelledby="people" className="card">
         <h2 id="people">Candidate people</h2>

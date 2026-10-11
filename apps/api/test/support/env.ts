@@ -12,6 +12,7 @@ export function baseEnv(overrides: Record<string, string> = {}): NodeJS.ProcessE
     S3_BUCKET: 'evidence',
     S3_ACCESS_KEY_ID: 'test',
     S3_SECRET_ACCESS_KEY: 'test',
+    CONTACT_FIELD_KEY: 'test-contact-field-key-not-for-production',
     ...overrides,
   };
 }

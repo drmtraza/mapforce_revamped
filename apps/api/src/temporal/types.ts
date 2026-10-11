@@ -20,6 +20,20 @@ export interface ResearchWorkflowInput {
   budget: { maxRecordsPerSource: number; maxEvidencePerSource: number };
 }
 
+export interface EnrichmentWorkflowInput {
+  tenantId: string;
+  jobId: string;
+  companyId: string;
+  personId: string;
+  personName: string;
+  domain: string;
+  companyName: string;
+  correlationId: string;
+  pythonTaskQueue: string;
+  sources: SourcePlan[];
+  budget: { maxRecordsPerSource: number; maxEvidencePerSource: number };
+}
+
 export interface DiscoveryQuery {
   text: string;
   country_codes: string[];
@@ -39,6 +53,7 @@ export interface AdapterRequest {
   source_key: string;
   operation: AdapterOperation;
   company?: { domain: string; name: string };
+  person?: { full_name: string; title?: string | null };
   query?: DiscoveryQuery;
   budget: { max_records: number; max_evidence: number };
   correlation_id: string;
@@ -74,5 +89,7 @@ export const RESEARCH_OPERATIONS: readonly AdapterOperation[] = [
   'fetch_company_evidence',
   'fetch_registry_record',
   'discover_people',
+  'fetch_intent_signals',
 ];
 export const DISCOVERY_OPERATIONS: readonly AdapterOperation[] = ['discover_companies'];
+export const ENRICH_OPERATIONS: readonly AdapterOperation[] = ['enrich_contact'];

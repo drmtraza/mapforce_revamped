@@ -4,6 +4,13 @@ import { withContext, type Db, type SourceStatus, type Tx } from '@mapforce/db';
 import { hostWithinDomain } from '../../domain.ts';
 import { recordAudit } from '../audit/service.ts';
 import { evidenceKey, type EvidenceStorage } from '../evidence/storage.ts';
+import {
+  displayHint,
+  encryptContactValue,
+  guessedMethod,
+  hashContactValue,
+  normalizeContactValue,
+} from '../contacts/crypto.ts';
 import { enqueueEvent } from '../outbox/service.ts';
 import type { SourceOutcome } from '../../temporal/types.ts';
 
@@ -138,7 +145,14 @@ export async function persistSourceResult(
     const job = await trx
       .selectFrom('workflow_jobs as j')
       .innerJoin('companies as c', 'c.id', 'j.company_id')
-      .select(['j.id', 'j.status', 'j.company_id', 'c.primary_domain', 'c.canonical_name'])
+      .select([
+        'j.id',
+        'j.status',
+        'j.company_id',
+        'j.person_id',
+        'c.primary_domain',
+        'c.canonical_name',
+      ])
       .where('j.tenant_id', '=', input.tenantId)
       .where('j.id', '=', input.jobId)
       .executeTakeFirst();
@@ -420,6 +434,26 @@ export async function persistSourceResult(
             .doUpdateSet({ confidence: p.confidence }),
         )
         .execute();
+      const currentRoles = await trx
+        .selectFrom('employment_roles')
+        .select(['id', 'title'])
+        .where('tenant_id', '=', input.tenantId)
+        .where('person_id', '=', personId)
+        .where('company_id', '=', input.companyId)
+        .where('status', '=', 'current')
+        .execute();
+      if (p.title) {
+        const endDate = observedAt.toISOString().slice(0, 10);
+        for (const current of currentRoles) {
+          if (current.title !== p.title) {
+            await trx
+              .updateTable('employment_roles')
+              .set({ status: 'past', end_date: endDate })
+              .where('id', '=', current.id)
+              .execute();
+          }
+        }
+      }
       const role = await trx
         .insertInto('employment_roles')
         .values({
@@ -430,14 +464,41 @@ export async function persistSourceResult(
           department: p.department,
           seniority: p.seniority,
           status: 'current',
+          start_date: p.title ? observedAt.toISOString().slice(0, 10) : null,
         })
         .onConflict((oc) =>
-          oc
-            .columns(['tenant_id', 'person_id', 'company_id', 'title'])
-            .doUpdateSet({ department: p.department, seniority: p.seniority }),
+          oc.columns(['tenant_id', 'person_id', 'company_id', 'title']).doUpdateSet({
+            department: p.department,
+            seniority: p.seniority,
+            status: 'current',
+            end_date: null,
+          }),
         )
         .returning('id')
         .executeTakeFirstOrThrow();
+
+      const sameName = await trx
+        .selectFrom('people')
+        .select(['id'])
+        .where('tenant_id', '=', input.tenantId)
+        .where('normalized_name', '=', normalized)
+        .where('id', '<>', personId)
+        .where('merged_into_id', 'is', null)
+        .execute();
+      for (const other of sameName) {
+        const [a, b] = personId < other.id ? [personId, other.id] : [other.id, personId];
+        await trx
+          .insertInto('match_candidates')
+          .values({
+            tenant_id: input.tenantId,
+            person_a_id: a,
+            person_b_id: b,
+            score: 0.7,
+            rationale: `Same normalized name observed on more than one company record.`,
+          })
+          .onConflict((oc) => oc.columns(['tenant_id', 'person_a_id', 'person_b_id']).doNothing())
+          .execute();
+      }
 
       const evidence = ev(p.evidence_refs);
       await upsertClaim({
@@ -551,6 +612,136 @@ export async function persistSourceResult(
         .execute();
     }
 
+    for (const s of r.signals ?? []) {
+      const signal = await trx
+        .insertInto('intent_signals')
+        .values({
+          tenant_id: input.tenantId,
+          company_id: input.companyId,
+          signal_type: s.signal_type,
+          title: s.title,
+          summary: s.summary,
+          implies_budget: s.signal_type === 'hiring' ? false : s.implies_budget,
+          claim_type: s.claim_type,
+          confidence: s.confidence,
+          country_code: s.country_code,
+          observed_at: s.observed_at,
+          source_key: input.sourceKey,
+          workflow_job_id: input.jobId,
+        })
+        .returning('id')
+        .executeTakeFirstOrThrow();
+      await trx
+        .insertInto('signal_evidence')
+        .values(
+          ev(s.evidence_refs).map((id) => ({
+            signal_id: signal.id,
+            evidence_record_id: id,
+            tenant_id: input.tenantId,
+          })),
+        )
+        .onConflict((oc) => oc.columns(['signal_id', 'evidence_record_id']).doNothing())
+        .execute();
+    }
+
+    const enrichPersonId = job.person_id;
+    if (r.operation === 'enrich_contact' && enrichPersonId) {
+      const personRow = await trx
+        .selectFrom('people')
+        .select(['id', 'merged_into_id'])
+        .where('tenant_id', '=', input.tenantId)
+        .where('id', '=', enrichPersonId)
+        .executeTakeFirst();
+      const targetPersonId = personRow?.merged_into_id ?? personRow?.id ?? null;
+      if (targetPersonId) {
+        const suppressed = await trx
+          .selectFrom('consent_suppressions')
+          .select(['subject_type', 'value_hash'])
+          .where('tenant_id', '=', input.tenantId)
+          .where((eb) =>
+            eb.or([
+              eb.and([
+                eb('subject_type', '=', 'person'),
+                eb('value_hash', '=', hashContactValue('person', targetPersonId)),
+              ]),
+              eb.and([
+                eb('subject_type', '=', 'domain'),
+                eb('value_hash', '=', hashContactValue('domain', job.primary_domain)),
+              ]),
+            ]),
+          )
+          .execute();
+        const suppressedHashes = new Set(
+          suppressed.map((row) => `${row.subject_type}:${row.value_hash}`),
+        );
+        const personSuppressed =
+          suppressedHashes.has(`person:${hashContactValue('person', targetPersonId)}`) ||
+          suppressedHashes.has(`domain:${hashContactValue('domain', job.primary_domain)}`);
+
+        for (const c of r.contact_points ?? []) {
+          if (guessedMethod(c.verification_method) && c.status === 'provider_verified') continue;
+          const value = normalizeContactValue(c.contact_type, c.value);
+          const valueHash = hashContactValue(c.contact_type, value);
+          const subject = c.contact_type === 'work_email' ? 'email' : 'phone';
+          const hit = await trx
+            .selectFrom('consent_suppressions')
+            .select('id')
+            .where('tenant_id', '=', input.tenantId)
+            .where('subject_type', '=', subject)
+            .where('value_hash', '=', valueHash)
+            .executeTakeFirst();
+          if (personSuppressed || hit) {
+            await recordAudit(trx, {
+              tenantId: input.tenantId,
+              actorUserId: null,
+              action: 'enrichment.suppressed',
+              entityType: 'person',
+              entityId: targetPersonId,
+              correlationId: input.correlationId,
+              metadata: { contact_type: c.contact_type, source_key: input.sourceKey },
+            });
+            continue;
+          }
+          const sealed = encryptContactValue(value);
+          await trx
+            .insertInto('contact_points')
+            .values({
+              tenant_id: input.tenantId,
+              person_id: targetPersonId,
+              company_id: input.companyId,
+              contact_type: c.contact_type,
+              normalized_value_hash: valueHash,
+              display_hint: displayHint(c.contact_type, value),
+              value_ciphertext: sealed.ciphertext,
+              value_iv: sealed.iv,
+              value_tag: sealed.tag,
+              status: c.status,
+              verification_method: c.verification_method,
+              verified_at: c.verified_at,
+              claim_type: c.claim_type,
+              confidence: c.confidence,
+              source_key: input.sourceKey,
+              source_evidence_id: ev(c.evidence_refs)[0] ?? null,
+              workflow_job_id: input.jobId,
+              observed_at: observedAt,
+            })
+            .onConflict((oc) =>
+              oc
+                .columns(['tenant_id', 'person_id', 'contact_type', 'normalized_value_hash'])
+                .doUpdateSet({
+                  status: c.status,
+                  verification_method: c.verification_method,
+                  verified_at: c.verified_at,
+                  confidence: c.confidence,
+                  source_key: input.sourceKey,
+                  workflow_job_id: input.jobId,
+                }),
+            )
+            .execute();
+        }
+      }
+    }
+
     await trx
       .insertInto('provider_usage')
       .values({
@@ -607,6 +798,8 @@ export async function persistSourceResult(
         evidence: evidenceIds.size,
         people: personIds.size,
         relationships: r.relationships.length,
+        signals: (r.signals ?? []).length,
+        contacts: (r.contact_points ?? []).length,
       },
     });
     return { evidence: evidenceIds.size };

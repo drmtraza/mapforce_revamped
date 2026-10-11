@@ -3,11 +3,16 @@ import {
   WorkflowNotFoundError,
   type Client,
 } from '@temporalio/client';
-import type { DiscoveryWorkflowInput, ResearchWorkflowInput } from './types.ts';
+import type {
+  DiscoveryWorkflowInput,
+  EnrichmentWorkflowInput,
+  ResearchWorkflowInput,
+} from './types.ts';
 
 export interface ResearchDispatcher {
   start(input: ResearchWorkflowInput): Promise<void>;
   startDiscovery(input: DiscoveryWorkflowInput): Promise<void>;
+  startEnrichment(input: EnrichmentWorkflowInput): Promise<void>;
   cancel(workflowId: string): Promise<void>;
 }
 
@@ -17,6 +22,10 @@ export function researchWorkflowId(jobId: string): string {
 
 export function discoveryWorkflowId(jobId: string): string {
   return `discovery-${jobId}`;
+}
+
+export function enrichmentWorkflowId(jobId: string): string {
+  return `enrich-${jobId}`;
 }
 
 export function createTemporalDispatcher(client: Client, taskQueue: string): ResearchDispatcher {
@@ -40,6 +49,9 @@ export function createTemporalDispatcher(client: Client, taskQueue: string): Res
     },
     async startDiscovery(input) {
       await startOnce('discoverCompaniesWorkflow', discoveryWorkflowId(input.jobId), input);
+    },
+    async startEnrichment(input) {
+      await startOnce('enrichPersonWorkflow', enrichmentWorkflowId(input.jobId), input);
     },
     async cancel(workflowId) {
       try {

@@ -33,6 +33,9 @@ import { sourceRoutes } from './modules/sources/routes.ts';
 import { discoveryRoutes } from './modules/discovery/routes.ts';
 import { importRoutes } from './modules/imports/routes.ts';
 import { deadLetterRoutes } from './modules/outbox/routes.ts';
+import { signalRoutes } from './modules/signals/routes.ts';
+import { suppressionRoutes } from './modules/suppressions/routes.ts';
+import { enrichmentRoutes } from './modules/enrichment/routes.ts';
 
 export interface AppDeps {
   config: Config;
@@ -156,6 +159,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(discoveryRoutes(deps));
       await v1.register(importRoutes(deps));
       await v1.register(deadLetterRoutes(deps));
+      await v1.register(signalRoutes(deps));
+      await v1.register(suppressionRoutes(deps));
+      await v1.register(enrichmentRoutes(deps));
     },
     { prefix: '/api/v1' },
   );

@@ -28,7 +28,9 @@
         "fetch_company_evidence",
         "discover_people",
         "fetch_registry_record",
-        "discover_companies"
+        "discover_companies",
+        "fetch_intent_signals",
+        "enrich_contact"
       ]
     },
     "status": { "type": "string", "enum": ["succeeded", "failed"] },
@@ -216,6 +218,112 @@
           {
             "if": { "properties": { "claim_type": { "const": "model_inference" } } },
             "then": { "properties": { "status": { "const": "inferred" } } }
+          }
+        ]
+      }
+    },
+    "signals": {
+      "description": "Intent signals from fetch_intent_signals. Optional; hiring never implies budget.",
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "signal_type",
+          "title",
+          "summary",
+          "implies_budget",
+          "claim_type",
+          "confidence",
+          "country_code",
+          "observed_at",
+          "evidence_refs"
+        ],
+        "properties": {
+          "ref": { "$ref": "#/$defs/ref" },
+          "signal_type": {
+            "type": "string",
+            "enum": ["hiring", "funding", "procurement", "news", "product", "other"]
+          },
+          "title": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },
+          "implies_budget": { "type": "boolean" },
+          "claim_type": { "$ref": "#/$defs/sourcedClaimType" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "country_code": { "type": ["string", "null"], "pattern": "^[A-Z]{2}$" },
+          "observed_at": { "type": "string", "format": "date-time" },
+          "evidence_refs": { "$ref": "#/$defs/refs" }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "signal_type": { "const": "hiring" } } },
+            "then": { "properties": { "implies_budget": { "const": false } } }
+          }
+        ]
+      }
+    },
+    "contact_points": {
+      "description": "Contact points from enrich_contact. Pattern/MX guesses must never be provider_verified.",
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "contact_type",
+          "value",
+          "status",
+          "verification_method",
+          "verified_at",
+          "claim_type",
+          "confidence",
+          "evidence_refs"
+        ],
+        "properties": {
+          "ref": { "$ref": "#/$defs/ref" },
+          "contact_type": { "type": "string", "enum": ["work_email", "work_phone"] },
+          "value": { "type": "string", "minLength": 3, "maxLength": 320 },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unverified",
+              "provider_verified",
+              "deliverable_likely",
+              "invalid",
+              "catch_all",
+              "unknown",
+              "suppressed"
+            ]
+          },
+          "verification_method": {
+            "type": "string",
+            "enum": ["none", "pattern", "mx", "provider", "user"]
+          },
+          "verified_at": { "type": ["string", "null"], "format": "date-time" },
+          "claim_type": { "$ref": "#/$defs/sourcedClaimType" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "evidence_refs": { "$ref": "#/$defs/refs" }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": { "verification_method": { "enum": ["none", "pattern", "mx"] } }
+            },
+            "then": {
+              "not": { "properties": { "status": { "const": "provider_verified" } } }
+            }
+          },
+          {
+            "if": { "properties": { "status": { "const": "provider_verified" } } },
+            "then": {
+              "properties": {
+                "verification_method": { "const": "provider" },
+                "verified_at": { "type": "string", "format": "date-time" }
+              }
+            }
           }
         ]
       }

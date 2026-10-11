@@ -25,7 +25,7 @@ from ..models import (
     Relationship,
     empty_result,
 )
-from .base import AdapterFailure, BaseAdapter, require_company, require_query
+from .base import AdapterFailure, BaseAdapter, require_company, require_person, require_query
 
 FIRST_NAMES = ("Avery", "Jordan", "Riley", "Morgan", "Casey", "Quinn", "Taylor", "Rowan")
 LAST_NAMES = ("Example", "Sample", "Placeholder", "Testcase", "Fixture", "Mockridge")
@@ -290,3 +290,156 @@ class MockSearchAdapter(BaseAdapter):
         result["evidence"] = [evidence]
         result["companies"] = candidates
         return result
+
+
+class MockCareersAdapter(BaseAdapter):
+    """Synthetic careers/job-board hiring signal. Hiring never implies budget."""
+
+    source_key = "mock_careers"
+    provider = PROVIDER
+    operations: frozenset[Operation] = frozenset({"fetch_intent_signals"})
+
+    async def fetch_intent_signals(self, request: AdapterRequest) -> AdapterResult:
+        domain = require_company(request)["domain"]
+        seed = _seed(domain)
+        openings = 1 + seed % 4
+        country = COUNTRIES[(seed >> 8) % len(COUNTRIES)]
+        summary = (
+            f"{openings} engineering roles listed on the careers page (synthetic). "
+            "Hiring activity is not evidence of budget."
+        )
+        evidence = [
+            _evidence("ev-jobs", f"https://{domain}/careers", summary, {"openings": openings})
+        ]
+        result = empty_result(self.source_key, self.provider, "fetch_intent_signals")
+        result["usage"] = {"request_count": 1, "units": 1, "unit_type": "records"}
+        result["evidence"] = evidence
+        result["signals"] = [
+            {
+                "ref": "sig-hire",
+                "signal_type": "hiring",
+                "title": "Engineering roles posted (synthetic)",
+                "summary": summary,
+                "implies_budget": False,
+                "claim_type": "source_fact",
+                "confidence": 0.6,
+                "country_code": country,
+                "observed_at": _now(),
+                "evidence_refs": ["ev-jobs"],
+            }
+        ]
+        return result
+
+
+PROCUREMENT_PORTALS = {
+    "US": ("https://sam.gov.example/notice/", "SAM.gov (synthetic US notice)"),
+    "GB": ("https://contractsfinder.example/notice/", "Contracts Finder (synthetic UK notice)"),
+    "DE": ("https://ted.europa.example/notice/", "TED (synthetic EU notice)"),
+    "FR": ("https://ted.europa.example/notice/", "TED (synthetic EU notice)"),
+    "IE": ("https://ted.europa.example/notice/", "TED (synthetic EU notice)"),
+    "NL": ("https://ted.europa.example/notice/", "TED (synthetic EU notice)"),
+}
+
+
+class MockProcurementAdapter(BaseAdapter):
+    """Synthetic US/UK/EU public-procurement notice. Not an awarded contract."""
+
+    source_key = "mock_procurement"
+    provider = PROVIDER
+    operations: frozenset[Operation] = frozenset({"fetch_intent_signals"})
+
+    async def fetch_intent_signals(self, request: AdapterRequest) -> AdapterResult:
+        domain = require_company(request)["domain"]
+        seed = _seed(domain)
+        country = COUNTRIES[(seed >> 8) % len(COUNTRIES)]
+        portal_url, portal_name = PROCUREMENT_PORTALS[country]
+        notice_id = f"{seed % 1_000_000:06d}"
+        summary = (
+            f"{portal_name} lists a proposed software contract for {_company_name(domain)} "
+            f"(notice {notice_id}). A public notice is not an awarded budget."
+        )
+        evidence = [_evidence("ev-tender", f"{portal_url}{notice_id}", summary)]
+        result = empty_result(self.source_key, self.provider, "fetch_intent_signals")
+        result["usage"] = {"request_count": 1, "units": 1, "unit_type": "records"}
+        result["evidence"] = evidence
+        result["signals"] = [
+            {
+                "ref": "sig-proc",
+                "signal_type": "procurement",
+                "title": "Proposed software contract (synthetic)",
+                "summary": summary,
+                "implies_budget": False,
+                "claim_type": "provider_fact",
+                "confidence": 0.4,
+                "country_code": country,
+                "observed_at": _now(),
+                "evidence_refs": ["ev-tender"],
+            }
+        ]
+        return result
+
+
+def _pattern_email(full_name: str, domain: str) -> str:
+    parts = re.findall(r"[a-z0-9]+", full_name.lower())
+    local = ".".join(parts[:2]) if len(parts) >= 2 else (parts[0] if parts else "unknown")
+    return f"{local}@{domain}"
+
+
+class MockContactsAdapter(BaseAdapter):
+    """Guesses first.last@domain. Status is always unverified; method is always pattern."""
+
+    source_key = "mock_contacts"
+    provider = PROVIDER
+    operations: frozenset[Operation] = frozenset({"enrich_contact"})
+
+    async def enrich_contact(self, request: AdapterRequest) -> AdapterResult:
+        domain = require_company(request)["domain"]
+        person = require_person(request)
+        email = _pattern_email(person["full_name"], domain)
+        text = (
+            f"Pattern guess {email} from name and company domain. "
+            "This address has not been verified."
+        )
+        evidence = [
+            _evidence(
+                "ev-pattern",
+                f"https://pattern.mock.example/?name={quote_plus(person['full_name'])}",
+                text,
+                {"method": "pattern"},
+            )
+        ]
+        result = empty_result(self.source_key, self.provider, "enrich_contact")
+        result["usage"] = {"request_count": 1, "units": 1, "unit_type": "records"}
+        result["evidence"] = evidence
+        result["contact_points"] = [
+            {
+                "ref": "ct-email",
+                "contact_type": "work_email",
+                "value": email,
+                "status": "unverified",
+                "verification_method": "pattern",
+                "verified_at": None,
+                "claim_type": "provider_fact",
+                "confidence": 0.3,
+                "evidence_refs": ["ev-pattern"],
+            }
+        ]
+        return result
+
+
+class LicensedContactsAdapter(BaseAdapter):
+    """Stub for a licensed provider. Registered only with flag+key; never enabled by default."""
+
+    source_key = "licensed_contacts"
+    provider = "licensed"
+    operations: frozenset[Operation] = frozenset({"enrich_contact"})
+
+    def __init__(self, api_key: str) -> None:
+        self._api_key = api_key
+
+    async def enrich_contact(self, request: AdapterRequest) -> AdapterResult:
+        raise AdapterFailure(
+            "SOURCE_DISABLED",
+            "Licensed contact provider is not approved for this environment (D12).",
+            retryable=False,
+        )

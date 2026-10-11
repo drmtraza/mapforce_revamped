@@ -1,5 +1,14 @@
 # Contract changelog
 
+## 2026-10-11 (Phase 3)
+- **`adapter-result.v1.schema.json` — additive, non-breaking.**
+  - `operation` enum adds `fetch_intent_signals` and `enrich_contact`.
+  - New optional `signals` array `{ref, signal_type, title, summary, implies_budget, claim_type, confidence, country_code, observed_at, evidence_refs}`. Hiring signals must set `implies_budget: false`.
+  - New optional `contact_points` array `{ref, contact_type, value, status, verification_method, verified_at, claim_type, confidence, evidence_refs}`. A guessed address (`pattern` / `mx` / `none`) cannot be `provider_verified`; `provider_verified` requires `verification_method: provider` and a `verified_at` timestamp.
+  - Control-plane validator also rejects signals/contacts on the wrong operation and treats them as data on failed results.
+  - Existing v1 payloads remain valid; `schema_version` stays `1`.
+- **`openapi.v1.json`** — additive endpoints for person enrichment, match/merge/split, company signals and suppressions (see `docs/PHASE_3_REPORT.md`).
+
 ## 2026-10-11 (Phase 2)
 - **`adapter-result.v1.schema.json` — additive, non-breaking.**
   - `operation` enum adds `discover_companies`.

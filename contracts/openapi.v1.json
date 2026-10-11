@@ -2099,6 +2099,18 @@
                           },
                           "status": {
                             "type": "string"
+                          },
+                          "start_date": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "end_date": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
                           }
                         },
                         "required": [
@@ -2107,9 +2119,17 @@
                           "title",
                           "department",
                           "seniority",
-                          "status"
+                          "status",
+                          "start_date",
+                          "end_date"
                         ],
                         "additionalProperties": false
+                      }
+                    },
+                    "aliases": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
                       }
                     },
                     "claims": {
@@ -2239,11 +2259,146 @@
                     "contact_points": {
                       "type": "array",
                       "items": {
-                        "not": {}
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "contact_type": {
+                            "type": "string"
+                          },
+                          "display_hint": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "verification_method": {
+                            "type": "string"
+                          },
+                          "verified_at": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "claim_type": {
+                            "type": "string"
+                          },
+                          "confidence": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number"
+                              },
+                              "band": {
+                                "type": "string",
+                                "enum": [
+                                  "strong",
+                                  "plausible",
+                                  "weak",
+                                  "very_weak"
+                                ]
+                              },
+                              "explanation": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "band",
+                              "explanation"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "source_key": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "contact_type",
+                          "display_hint",
+                          "status",
+                          "verification_method",
+                          "verified_at",
+                          "claim_type",
+                          "confidence",
+                          "source_key"
+                        ],
+                        "additionalProperties": false
                       }
                     },
                     "contact_points_note": {
                       "type": "string"
+                    },
+                    "match_candidates": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "other_person_id": {
+                            "type": "string"
+                          },
+                          "other_name": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "rationale": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "other_person_id",
+                          "other_name",
+                          "score",
+                          "rationale",
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "merges": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "survivor_id": {
+                            "type": "string"
+                          },
+                          "absorbed_id": {
+                            "type": "string"
+                          },
+                          "undone_at": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "survivor_id",
+                          "absorbed_id",
+                          "undone_at"
+                        ],
+                        "additionalProperties": false
+                      }
                     },
                     "reviews": {
                       "type": "array",
@@ -2283,9 +2438,12 @@
                     "review_status",
                     "version",
                     "roles",
+                    "aliases",
                     "claims",
                     "contact_points",
                     "contact_points_note",
+                    "match_candidates",
+                    "merges",
                     "reviews"
                   ],
                   "additionalProperties": false
@@ -2368,6 +2526,234 @@
                     "id",
                     "review_status",
                     "version"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/match-candidates": {
+      "get": {
+        "tags": [
+          "people"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "person_a_id": {
+                            "type": "string"
+                          },
+                          "person_b_id": {
+                            "type": "string"
+                          },
+                          "person_a_name": {
+                            "type": "string"
+                          },
+                          "person_b_name": {
+                            "type": "string"
+                          },
+                          "score": {
+                            "type": "number"
+                          },
+                          "rationale": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "person_a_id",
+                          "person_b_id",
+                          "person_a_name",
+                          "person_b_name",
+                          "score",
+                          "rationale",
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/match-candidates/{id}/accept": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "survivor_person_id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  }
+                },
+                "required": [
+                  "survivor_person_id"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "survivor_id": {
+                      "type": "string"
+                    },
+                    "absorbed_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "survivor_id",
+                    "absorbed_id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/match-candidates/{id}/reject": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/merges/{id}/split": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "survivor_id": {
+                      "type": "string"
+                    },
+                    "absorbed_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "survivor_id",
+                    "absorbed_id"
                   ],
                   "additionalProperties": false
                 }
@@ -4230,6 +4616,457 @@
                   "required": [
                     "id",
                     "status"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}/signals": {
+      "get": {
+        "tags": [
+          "signals"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "signal_type": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "summary": {
+                            "type": "string"
+                          },
+                          "implies_budget": {
+                            "type": "boolean"
+                          },
+                          "claim_type": {
+                            "type": "string",
+                            "enum": [
+                              "source_fact",
+                              "provider_fact",
+                              "model_inference",
+                              "user_assertion"
+                            ]
+                          },
+                          "confidence": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number"
+                              },
+                              "band": {
+                                "type": "string",
+                                "enum": [
+                                  "strong",
+                                  "plausible",
+                                  "weak",
+                                  "very_weak"
+                                ]
+                              },
+                              "explanation": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "value",
+                              "band",
+                              "explanation"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "country_code": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "observed_at": {
+                            "type": "string"
+                          },
+                          "source_key": {
+                            "type": "string"
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "source_url": {
+                                  "type": "string"
+                                },
+                                "excerpt": {
+                                  "type": [
+                                    "string",
+                                    "null"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "source_url",
+                                "excerpt"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "signal_type",
+                          "title",
+                          "summary",
+                          "implies_budget",
+                          "claim_type",
+                          "confidence",
+                          "country_code",
+                          "observed_at",
+                          "source_key",
+                          "evidence"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/suppressions": {
+      "get": {
+        "tags": [
+          "suppressions"
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "subject_type": {
+                            "type": "string",
+                            "enum": [
+                              "email",
+                              "phone",
+                              "domain",
+                              "person"
+                            ]
+                          },
+                          "display_hint": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "subject_type",
+                          "display_hint",
+                          "reason",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "suppressions"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "subject_type": {
+                    "type": "string",
+                    "enum": [
+                      "email",
+                      "phone",
+                      "domain",
+                      "person"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 320
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "subject_type",
+                  "value"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "subject_type": {
+                      "type": "string",
+                      "enum": [
+                        "email",
+                        "phone",
+                        "domain",
+                        "person"
+                      ]
+                    },
+                    "display_hint": {
+                      "type": "string"
+                    },
+                    "reason": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "subject_type",
+                    "display_hint",
+                    "reason",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}/enrich-jobs": {
+      "post": {
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "job_id",
+                    "status",
+                    "status_url"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/enrich-jobs/{id}": {
+      "get": {
+        "tags": [
+          "enrichment"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "person_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "company_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "error_code": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "error_summary": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source_key": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "error_code": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "error_summary": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "source_key",
+                          "status",
+                          "error_code",
+                          "error_summary"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "person_id",
+                    "company_id",
+                    "status",
+                    "error_code",
+                    "error_summary",
+                    "sources"
                   ],
                   "additionalProperties": false
                 }

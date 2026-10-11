@@ -7,7 +7,11 @@ import { createSession, SESSION_COOKIE, upsertUser } from '../../src/auth/sessio
 import { loadConfig } from '../../src/config.ts';
 import type { EvidenceStorage } from '../../src/modules/evidence/storage.ts';
 import type { ResearchDispatcher } from '../../src/temporal/dispatcher.ts';
-import type { DiscoveryWorkflowInput, ResearchWorkflowInput } from '../../src/temporal/types.ts';
+import type {
+  DiscoveryWorkflowInput,
+  EnrichmentWorkflowInput,
+  ResearchWorkflowInput,
+} from '../../src/temporal/types.ts';
 import { baseEnv } from './env.ts';
 
 export class MemoryStorage implements EvidenceStorage {
@@ -36,6 +40,7 @@ export class RecordingDispatcher implements ResearchDispatcher {
     await this.forward?.start(input);
   }
   startedDiscovery: DiscoveryWorkflowInput[] = [];
+  startedEnrichment: EnrichmentWorkflowInput[] = [];
   async startDiscovery(input: DiscoveryWorkflowInput) {
     if (this.failNext > 0) {
       this.failNext -= 1;
@@ -43,6 +48,14 @@ export class RecordingDispatcher implements ResearchDispatcher {
     }
     this.startedDiscovery.push(input);
     await this.forward?.startDiscovery(input);
+  }
+  async startEnrichment(input: EnrichmentWorkflowInput) {
+    if (this.failNext > 0) {
+      this.failNext -= 1;
+      throw new Error('temporal unavailable');
+    }
+    this.startedEnrichment.push(input);
+    await this.forward?.startEnrichment(input);
   }
   async cancel(workflowId: string) {
     this.cancelled.push(workflowId);
@@ -86,6 +99,7 @@ export async function startTestEnv(overrides: Record<string, string> = {}): Prom
   const storage = new MemoryStorage();
   const dispatcher = new RecordingDispatcher();
   const config = loadConfig(baseEnv({ DATABASE_APP_URL: pgh.appUrl, ...overrides }));
+  process.env.CONTACT_FIELD_KEY = config.CONTACT_FIELD_KEY;
   const app = await buildApp({ config, db, storage, dispatcher, idp: fakeIdp, logger: false });
   await app.ready();
   const owner = new pg.Client({ connectionString: pgh.ownerUrl });

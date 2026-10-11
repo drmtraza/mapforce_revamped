@@ -42,6 +42,89 @@ export function validDiscoveryResult(): AdapterResult {
   };
 }
 
+export function validSignalsResult(): AdapterResult {
+  return {
+    schema_version: 1,
+    source_key: 'mock_careers',
+    provider: 'mock',
+    operation: 'fetch_intent_signals',
+    status: 'succeeded',
+    error: null,
+    usage: { request_count: 1, units: 1, unit_type: 'records' },
+    evidence: [
+      {
+        ref: 'ev-jobs',
+        source_url: 'https://acme.example/careers',
+        fetched_at: '2026-10-01T00:00:00Z',
+        published_at: null,
+        content_type: 'text/html',
+        content_hash: HASH,
+        excerpt: '2 engineering roles listed (synthetic). Hiring is not evidence of budget.',
+        normalized_content: { openings: 2 },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    company_claims: [],
+    people: [],
+    relationships: [],
+    signals: [
+      {
+        ref: 'sig-hire',
+        signal_type: 'hiring',
+        title: 'Engineering roles posted (synthetic)',
+        summary: '2 engineering roles listed. Hiring activity is not evidence of budget.',
+        implies_budget: false,
+        claim_type: 'source_fact',
+        confidence: 0.6,
+        country_code: 'GB',
+        observed_at: '2026-10-01T00:00:00Z',
+        evidence_refs: ['ev-jobs'],
+      },
+    ],
+  };
+}
+
+export function validContactResult(): AdapterResult {
+  return {
+    schema_version: 1,
+    source_key: 'mock_contacts',
+    provider: 'mock',
+    operation: 'enrich_contact',
+    status: 'succeeded',
+    error: null,
+    usage: { request_count: 1, units: 1, unit_type: 'records' },
+    evidence: [
+      {
+        ref: 'ev-pattern',
+        source_url: 'https://pattern.mock.example/guess',
+        fetched_at: '2026-10-01T00:00:00Z',
+        published_at: null,
+        content_type: 'application/json',
+        content_hash: HASH,
+        excerpt: 'Pattern guess first.last@domain; not verified.',
+        normalized_content: { method: 'pattern' },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    company_claims: [],
+    people: [],
+    relationships: [],
+    contact_points: [
+      {
+        ref: 'ct-email',
+        contact_type: 'work_email',
+        value: 'avery.example@acme.example',
+        status: 'unverified',
+        verification_method: 'pattern',
+        verified_at: null,
+        claim_type: 'provider_fact',
+        confidence: 0.3,
+        evidence_refs: ['ev-pattern'],
+      },
+    ],
+  };
+}
+
 export function validPeopleResult(): AdapterResult {
   return {
     schema_version: 1,

@@ -12,7 +12,12 @@ import {
   type ResearchDispatcher,
 } from '../../src/temporal/dispatcher.ts';
 import type { AdapterInvocation, AdapterRequest } from '../../src/temporal/types.ts';
-import { peopleResult, webResult } from '../support/adapter-fixtures.ts';
+import {
+  careersResult,
+  peopleResult,
+  procurementResult,
+  webResult,
+} from '../support/adapter-fixtures.ts';
 import { call, signIn, startTestEnv, type Actor, type TestEnv } from '../support/harness.ts';
 
 const CONTROL_QUEUE = 'research-control-test';
@@ -44,6 +49,10 @@ async function runAdapter(request: AdapterRequest): Promise<AdapterInvocation> {
       return { attempt: 1, result: webResult(domain) };
     case 'mock_people':
       return { attempt: 1, result: peopleResult(domain) };
+    case 'mock_careers':
+      return { attempt: 1, result: careersResult(domain) };
+    case 'mock_procurement':
+      return { attempt: 1, result: procurementResult(domain) };
     default:
       throw ApplicationFailure.create({
         type: 'SOURCE_UNAVAILABLE',
@@ -135,7 +144,9 @@ describe('research workflow on a real Temporal server', () => {
 
     const requests = adapterCalls.filter((c) => c.company?.domain === 'acme.example');
     expect(requests.map((r) => r.source_key).sort()).toEqual([
+      'mock_careers',
       'mock_people',
+      'mock_procurement',
       'mock_registry',
       'mock_web',
     ]);
@@ -160,7 +171,7 @@ describe('research workflow on a real Temporal server', () => {
     await handle.result();
     const description = await handle.describe();
     expect(description.status.name).toBe('COMPLETED');
-    expect(adapterCalls.filter((c) => c.company?.domain === 'initech.example')).toHaveLength(3);
+    expect(adapterCalls.filter((c) => c.company?.domain === 'initech.example')).toHaveLength(5);
   });
 
   it('cancels a running job through the API and records the cancellation', async () => {

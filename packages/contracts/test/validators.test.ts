@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { validateAdapterResult, validateEventEnvelope, validateOrgMapV2 } from '../src/index.ts';
-import { validDiscoveryResult, validPeopleResult } from './fixtures.ts';
+import {
+  validContactResult,
+  validDiscoveryResult,
+  validPeopleResult,
+  validSignalsResult,
+} from './fixtures.ts';
 
 describe('validateAdapterResult', () => {
   it('accepts a well-formed result', () => {
@@ -111,6 +116,57 @@ describe('validateAdapterResult (discover_companies)', () => {
   it('still accepts v1 payloads without the optional companies array', () => {
     const r = validPeopleResult();
     expect('companies' in r).toBe(false);
+    expect(validateAdapterResult(r).ok).toBe(true);
+  });
+});
+
+describe('validateAdapterResult (signals and contacts)', () => {
+  it('accepts hiring signals that do not imply budget', () => {
+    expect(validateAdapterResult(validSignalsResult()).ok).toBe(true);
+  });
+
+  it('rejects hiring signals marked as implying budget', () => {
+    const r = validSignalsResult();
+    r.signals![0]!.implies_budget = true;
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('rejects signals on other operations', () => {
+    const r = validSignalsResult();
+    r.operation = 'fetch_company_evidence';
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('accepts pattern emails labelled unverified', () => {
+    expect(validateAdapterResult(validContactResult()).ok).toBe(true);
+  });
+
+  it('rejects a guessed address labelled provider_verified', () => {
+    const r = validContactResult();
+    r.contact_points![0]!.status = 'provider_verified';
+    r.contact_points![0]!.verified_at = '2026-10-01T00:00:00Z';
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('rejects provider_verified without a method and timestamp', () => {
+    const r = validContactResult();
+    r.operation = 'enrich_contact';
+    r.contact_points![0]!.status = 'provider_verified';
+    r.contact_points![0]!.verification_method = 'provider';
+    r.contact_points![0]!.verified_at = null;
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('rejects contacts on other operations', () => {
+    const r = validContactResult();
+    r.operation = 'discover_people';
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('still accepts v1 payloads without signals or contact_points', () => {
+    const r = validPeopleResult();
+    expect('signals' in r).toBe(false);
+    expect('contact_points' in r).toBe(false);
     expect(validateAdapterResult(r).ok).toBe(true);
   });
 });
