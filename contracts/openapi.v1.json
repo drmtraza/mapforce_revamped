@@ -1,0 +1,2260 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Mapforce API",
+    "version": "1.0.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "session": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "mf_session"
+      }
+    },
+    "schemas": {}
+  },
+  "paths": {
+    "/api/v1/auth/logout": {
+      "post": {
+        "tags": ["auth"],
+        "responses": {
+          "204": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "tags": ["auth"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "display_name": {
+                          "type": ["string", "null"]
+                        }
+                      },
+                      "required": ["id", "email", "display_name"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["user"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "tags": ["workspaces"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "owner",
+                              "admin",
+                              "manager",
+                              "researcher",
+                              "representative",
+                              "auditor"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["id", "name", "role", "created_at"],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["workspaces"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "owner",
+                        "admin",
+                        "manager",
+                        "researcher",
+                        "representative",
+                        "auditor"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["id", "name", "role", "created_at"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/{workspaceId}/members": {
+      "get": {
+        "tags": ["workspaces"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "workspaceId",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "user_id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "display_name": {
+                            "type": ["string", "null"]
+                          },
+                          "role": {
+                            "type": "string",
+                            "enum": [
+                              "owner",
+                              "admin",
+                              "manager",
+                              "researcher",
+                              "representative",
+                              "auditor"
+                            ]
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["user_id", "email", "display_name", "role", "status"],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/icp-profiles": {
+      "get": {
+        "tags": ["icp"],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "profile_key": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "number"
+                          },
+                          "definition": {
+                            "type": "object",
+                            "properties": {
+                              "industries": {
+                                "default": [],
+                                "maxItems": 50,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100
+                                }
+                              },
+                              "countries": {
+                                "default": [],
+                                "maxItems": 50,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[A-Z]{2}$"
+                                }
+                              },
+                              "employee_bands": {
+                                "default": [],
+                                "maxItems": 7,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "1-10",
+                                    "11-50",
+                                    "51-200",
+                                    "201-500",
+                                    "501-1000",
+                                    "1001-5000",
+                                    "5001+"
+                                  ]
+                                }
+                              },
+                              "target_personas": {
+                                "default": [],
+                                "maxItems": 5,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "economic_buyer",
+                                    "functional_champion",
+                                    "technical_evaluator",
+                                    "operational_user",
+                                    "procurement"
+                                  ]
+                                }
+                              },
+                              "target_titles": {
+                                "default": [],
+                                "maxItems": 50,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 1,
+                                  "maxLength": 100
+                                }
+                              },
+                              "signals": {
+                                "default": [],
+                                "maxItems": 9,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "hiring",
+                                    "funding",
+                                    "procurement",
+                                    "expansion",
+                                    "leadership_change",
+                                    "product_launch",
+                                    "technology_footprint",
+                                    "regulatory_filing",
+                                    "news"
+                                  ]
+                                }
+                              },
+                              "excluded_domains": {
+                                "default": [],
+                                "maxItems": 500,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "minLength": 3,
+                                  "maxLength": 253
+                                }
+                              }
+                            },
+                            "required": [
+                              "industries",
+                              "countries",
+                              "employee_bands",
+                              "target_personas",
+                              "target_titles",
+                              "signals",
+                              "excluded_domains"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "created_by": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "profile_key",
+                          "name",
+                          "version",
+                          "definition",
+                          "active",
+                          "created_by",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["icp"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "definition": {
+                    "type": "object",
+                    "properties": {
+                      "industries": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        }
+                      },
+                      "countries": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[A-Z]{2}$"
+                        }
+                      },
+                      "employee_bands": {
+                        "default": [],
+                        "maxItems": 7,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "1-10",
+                            "11-50",
+                            "51-200",
+                            "201-500",
+                            "501-1000",
+                            "1001-5000",
+                            "5001+"
+                          ]
+                        }
+                      },
+                      "target_personas": {
+                        "default": [],
+                        "maxItems": 5,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "economic_buyer",
+                            "functional_champion",
+                            "technical_evaluator",
+                            "operational_user",
+                            "procurement"
+                          ]
+                        }
+                      },
+                      "target_titles": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        }
+                      },
+                      "signals": {
+                        "default": [],
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "hiring",
+                            "funding",
+                            "procurement",
+                            "expansion",
+                            "leadership_change",
+                            "product_launch",
+                            "technology_footprint",
+                            "regulatory_filing",
+                            "news"
+                          ]
+                        }
+                      },
+                      "excluded_domains": {
+                        "default": [],
+                        "maxItems": 500,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 253
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["name", "definition"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "profile_key": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "definition": {
+                      "type": "object",
+                      "properties": {
+                        "industries": {
+                          "default": [],
+                          "maxItems": 50,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          }
+                        },
+                        "countries": {
+                          "default": [],
+                          "maxItems": 50,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          }
+                        },
+                        "employee_bands": {
+                          "default": [],
+                          "maxItems": 7,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "1-10",
+                              "11-50",
+                              "51-200",
+                              "201-500",
+                              "501-1000",
+                              "1001-5000",
+                              "5001+"
+                            ]
+                          }
+                        },
+                        "target_personas": {
+                          "default": [],
+                          "maxItems": 5,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "economic_buyer",
+                              "functional_champion",
+                              "technical_evaluator",
+                              "operational_user",
+                              "procurement"
+                            ]
+                          }
+                        },
+                        "target_titles": {
+                          "default": [],
+                          "maxItems": 50,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          }
+                        },
+                        "signals": {
+                          "default": [],
+                          "maxItems": 9,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "hiring",
+                              "funding",
+                              "procurement",
+                              "expansion",
+                              "leadership_change",
+                              "product_launch",
+                              "technology_footprint",
+                              "regulatory_filing",
+                              "news"
+                            ]
+                          }
+                        },
+                        "excluded_domains": {
+                          "default": [],
+                          "maxItems": 500,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 253
+                          }
+                        }
+                      },
+                      "required": [
+                        "industries",
+                        "countries",
+                        "employee_bands",
+                        "target_personas",
+                        "target_titles",
+                        "signals",
+                        "excluded_domains"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "created_by": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "profile_key",
+                    "name",
+                    "version",
+                    "definition",
+                    "active",
+                    "created_by",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/icp-profiles/{id}": {
+      "patch": {
+        "tags": ["icp"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "definition": {
+                    "type": "object",
+                    "properties": {
+                      "industries": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        }
+                      },
+                      "countries": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^[A-Z]{2}$"
+                        }
+                      },
+                      "employee_bands": {
+                        "default": [],
+                        "maxItems": 7,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "1-10",
+                            "11-50",
+                            "51-200",
+                            "201-500",
+                            "501-1000",
+                            "1001-5000",
+                            "5001+"
+                          ]
+                        }
+                      },
+                      "target_personas": {
+                        "default": [],
+                        "maxItems": 5,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "economic_buyer",
+                            "functional_champion",
+                            "technical_evaluator",
+                            "operational_user",
+                            "procurement"
+                          ]
+                        }
+                      },
+                      "target_titles": {
+                        "default": [],
+                        "maxItems": 50,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 100
+                        }
+                      },
+                      "signals": {
+                        "default": [],
+                        "maxItems": 9,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "hiring",
+                            "funding",
+                            "procurement",
+                            "expansion",
+                            "leadership_change",
+                            "product_launch",
+                            "technology_footprint",
+                            "regulatory_filing",
+                            "news"
+                          ]
+                        }
+                      },
+                      "excluded_domains": {
+                        "default": [],
+                        "maxItems": 500,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 3,
+                          "maxLength": 253
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["expected_version"]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "profile_key": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "definition": {
+                      "type": "object",
+                      "properties": {
+                        "industries": {
+                          "default": [],
+                          "maxItems": 50,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          }
+                        },
+                        "countries": {
+                          "default": [],
+                          "maxItems": 50,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[A-Z]{2}$"
+                          }
+                        },
+                        "employee_bands": {
+                          "default": [],
+                          "maxItems": 7,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "1-10",
+                              "11-50",
+                              "51-200",
+                              "201-500",
+                              "501-1000",
+                              "1001-5000",
+                              "5001+"
+                            ]
+                          }
+                        },
+                        "target_personas": {
+                          "default": [],
+                          "maxItems": 5,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "economic_buyer",
+                              "functional_champion",
+                              "technical_evaluator",
+                              "operational_user",
+                              "procurement"
+                            ]
+                          }
+                        },
+                        "target_titles": {
+                          "default": [],
+                          "maxItems": 50,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100
+                          }
+                        },
+                        "signals": {
+                          "default": [],
+                          "maxItems": 9,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "enum": [
+                              "hiring",
+                              "funding",
+                              "procurement",
+                              "expansion",
+                              "leadership_change",
+                              "product_launch",
+                              "technology_footprint",
+                              "regulatory_filing",
+                              "news"
+                            ]
+                          }
+                        },
+                        "excluded_domains": {
+                          "default": [],
+                          "maxItems": 500,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "minLength": 3,
+                            "maxLength": 253
+                          }
+                        }
+                      },
+                      "required": [
+                        "industries",
+                        "countries",
+                        "employee_bands",
+                        "target_personas",
+                        "target_titles",
+                        "signals",
+                        "excluded_domains"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "active": {
+                      "type": "boolean"
+                    },
+                    "created_by": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "profile_key",
+                    "name",
+                    "version",
+                    "definition",
+                    "active",
+                    "created_by",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies": {
+      "post": {
+        "tags": ["companies"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "domain": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  }
+                },
+                "required": ["domain"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "created": {
+                      "type": "boolean",
+                      "enum": [false]
+                    },
+                    "company": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "canonical_name": {
+                          "type": "string"
+                        },
+                        "primary_domain": {
+                          "type": "string"
+                        },
+                        "country_code": {
+                          "type": ["string", "null"]
+                        },
+                        "industry": {
+                          "type": ["string", "null"]
+                        },
+                        "employee_band": {
+                          "type": ["string", "null"]
+                        },
+                        "description": {
+                          "type": ["string", "null"]
+                        },
+                        "lifecycle_status": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "number"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "canonical_name",
+                        "primary_domain",
+                        "country_code",
+                        "industry",
+                        "employee_band",
+                        "description",
+                        "lifecycle_status",
+                        "version",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["created", "company"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "created": {
+                      "type": "boolean",
+                      "enum": [true]
+                    },
+                    "company": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "canonical_name": {
+                          "type": "string"
+                        },
+                        "primary_domain": {
+                          "type": "string"
+                        },
+                        "country_code": {
+                          "type": ["string", "null"]
+                        },
+                        "industry": {
+                          "type": ["string", "null"]
+                        },
+                        "employee_band": {
+                          "type": ["string", "null"]
+                        },
+                        "description": {
+                          "type": ["string", "null"]
+                        },
+                        "lifecycle_status": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "number"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "canonical_name",
+                        "primary_domain",
+                        "country_code",
+                        "industry",
+                        "employee_band",
+                        "description",
+                        "lifecycle_status",
+                        "version",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["created", "company"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["companies"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "cursor",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "query",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "canonical_name": {
+                            "type": "string"
+                          },
+                          "primary_domain": {
+                            "type": "string"
+                          },
+                          "country_code": {
+                            "type": ["string", "null"]
+                          },
+                          "industry": {
+                            "type": ["string", "null"]
+                          },
+                          "employee_band": {
+                            "type": ["string", "null"]
+                          },
+                          "description": {
+                            "type": ["string", "null"]
+                          },
+                          "lifecycle_status": {
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "number"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "canonical_name",
+                          "primary_domain",
+                          "country_code",
+                          "industry",
+                          "employee_band",
+                          "description",
+                          "lifecycle_status",
+                          "version",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    },
+                    "next_cursor": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "required": ["data", "has_more", "next_cursor"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}": {
+      "get": {
+        "tags": ["companies"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "company": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "canonical_name": {
+                          "type": "string"
+                        },
+                        "primary_domain": {
+                          "type": "string"
+                        },
+                        "country_code": {
+                          "type": ["string", "null"]
+                        },
+                        "industry": {
+                          "type": ["string", "null"]
+                        },
+                        "employee_band": {
+                          "type": ["string", "null"]
+                        },
+                        "description": {
+                          "type": ["string", "null"]
+                        },
+                        "lifecycle_status": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "number"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "canonical_name",
+                        "primary_domain",
+                        "country_code",
+                        "industry",
+                        "employee_band",
+                        "description",
+                        "lifecycle_status",
+                        "version",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "latest_job": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "status": {
+                              "type": "string"
+                            },
+                            "created_at": {
+                              "type": "string"
+                            }
+                          },
+                          "required": ["id", "status", "created_at"],
+                          "additionalProperties": false
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "counts": {
+                      "type": "object",
+                      "properties": {
+                        "evidence": {
+                          "type": "number"
+                        },
+                        "people": {
+                          "type": "number"
+                        }
+                      },
+                      "required": ["evidence", "people"],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": ["company", "latest_job", "counts"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}/evidence": {
+      "get": {
+        "tags": ["evidence"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "cursor",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "source_key": {
+                            "type": "string"
+                          },
+                          "provider_name": {
+                            "type": "string"
+                          },
+                          "source_type": {
+                            "type": "string"
+                          },
+                          "is_mock": {
+                            "type": "boolean"
+                          },
+                          "source_url": {
+                            "type": "string"
+                          },
+                          "fetched_at": {
+                            "type": "string"
+                          },
+                          "published_at": {
+                            "type": ["string", "null"]
+                          },
+                          "content_hash": {
+                            "type": "string"
+                          },
+                          "content_type": {
+                            "type": "string"
+                          },
+                          "excerpt": {
+                            "type": ["string", "null"]
+                          },
+                          "has_stored_content": {
+                            "type": "boolean"
+                          },
+                          "workflow_job_id": {
+                            "type": ["string", "null"]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "source_key",
+                          "provider_name",
+                          "source_type",
+                          "is_mock",
+                          "source_url",
+                          "fetched_at",
+                          "published_at",
+                          "content_hash",
+                          "content_type",
+                          "excerpt",
+                          "has_stored_content",
+                          "workflow_job_id",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    },
+                    "next_cursor": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "required": ["data", "has_more", "next_cursor"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/evidence/{id}/content-url": {
+      "get": {
+        "tags": ["evidence"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "expires_in_seconds": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["url", "expires_in_seconds"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}/research-jobs": {
+      "post": {
+        "tags": ["research"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["job_id", "status", "status_url"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/research-jobs/{id}": {
+      "get": {
+        "tags": ["research"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "company_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "started_at": {
+                      "type": ["string", "null"]
+                    },
+                    "finished_at": {
+                      "type": ["string", "null"]
+                    },
+                    "error_code": {
+                      "type": ["string", "null"]
+                    },
+                    "error_summary": {
+                      "type": ["string", "null"]
+                    },
+                    "sources": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source_key": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "attempts": {
+                            "type": "number"
+                          },
+                          "evidence_count": {
+                            "type": "number"
+                          },
+                          "error_code": {
+                            "type": ["string", "null"]
+                          },
+                          "error_summary": {
+                            "type": ["string", "null"]
+                          },
+                          "finished_at": {
+                            "type": ["string", "null"]
+                          }
+                        },
+                        "required": [
+                          "source_key",
+                          "status",
+                          "attempts",
+                          "evidence_count",
+                          "error_code",
+                          "error_summary",
+                          "finished_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "company_id",
+                    "status",
+                    "created_at",
+                    "started_at",
+                    "finished_at",
+                    "error_code",
+                    "error_summary",
+                    "sources"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/research-jobs/{id}/cancel": {
+      "post": {
+        "tags": ["research"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job_id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "status_url": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["job_id", "status", "status_url"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}/people": {
+      "get": {
+        "tags": ["people"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "canonical_name": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": ["string", "null"]
+                          },
+                          "department": {
+                            "type": ["string", "null"]
+                          },
+                          "seniority": {
+                            "type": ["string", "null"]
+                          },
+                          "review_status": {
+                            "type": "string"
+                          },
+                          "confidence": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number"
+                              },
+                              "band": {
+                                "type": "string",
+                                "enum": ["strong", "plausible", "weak", "very_weak"]
+                              },
+                              "explanation": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["value", "band", "explanation"],
+                            "additionalProperties": false
+                          },
+                          "evidence_count": {
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "canonical_name",
+                          "title",
+                          "department",
+                          "seniority",
+                          "review_status",
+                          "confidence",
+                          "evidence_count"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["data"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}": {
+      "get": {
+        "tags": ["people"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "canonical_name": {
+                      "type": "string"
+                    },
+                    "public_profile_url": {
+                      "type": ["string", "null"]
+                    },
+                    "review_status": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "company_id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": ["string", "null"]
+                          },
+                          "department": {
+                            "type": ["string", "null"]
+                          },
+                          "seniority": {
+                            "type": ["string", "null"]
+                          },
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "company_id",
+                          "title",
+                          "department",
+                          "seniority",
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "claims": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "subject_type": {
+                            "type": "string"
+                          },
+                          "predicate": {
+                            "type": "string"
+                          },
+                          "value": {},
+                          "claim_type": {
+                            "type": "string",
+                            "enum": [
+                              "source_fact",
+                              "provider_fact",
+                              "model_inference",
+                              "user_assertion"
+                            ]
+                          },
+                          "status": {
+                            "type": "string"
+                          },
+                          "confidence": {
+                            "type": "object",
+                            "properties": {
+                              "value": {
+                                "type": "number"
+                              },
+                              "band": {
+                                "type": "string",
+                                "enum": ["strong", "plausible", "weak", "very_weak"]
+                              },
+                              "explanation": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["value", "band", "explanation"],
+                            "additionalProperties": false
+                          },
+                          "rationale": {
+                            "type": ["string", "null"]
+                          },
+                          "observed_at": {
+                            "type": "string"
+                          },
+                          "evidence": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "source_key": {
+                                  "type": "string"
+                                },
+                                "provider_name": {
+                                  "type": "string"
+                                },
+                                "is_mock": {
+                                  "type": "boolean"
+                                },
+                                "source_url": {
+                                  "type": "string"
+                                },
+                                "fetched_at": {
+                                  "type": "string"
+                                },
+                                "content_hash": {
+                                  "type": "string"
+                                },
+                                "excerpt": {
+                                  "type": ["string", "null"]
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "source_key",
+                                "provider_name",
+                                "is_mock",
+                                "source_url",
+                                "fetched_at",
+                                "content_hash",
+                                "excerpt"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "subject_type",
+                          "predicate",
+                          "value",
+                          "claim_type",
+                          "status",
+                          "confidence",
+                          "rationale",
+                          "observed_at",
+                          "evidence"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "contact_points": {
+                      "type": "array",
+                      "items": {
+                        "not": {}
+                      }
+                    },
+                    "contact_points_note": {
+                      "type": "string"
+                    },
+                    "reviews": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "decision": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": ["string", "null"]
+                          },
+                          "actor_user_id": {
+                            "type": "string"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["decision", "reason", "actor_user_id", "created_at"],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "canonical_name",
+                    "public_profile_url",
+                    "review_status",
+                    "version",
+                    "roles",
+                    "claims",
+                    "contact_points",
+                    "contact_points_note",
+                    "reviews"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/people/{id}/review": {
+      "post": {
+        "tags": ["people"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "decision": {
+                    "type": "string",
+                    "enum": ["confirm", "reject", "dispute"]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 2000
+                  },
+                  "expected_version": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 9007199254740991
+                  }
+                },
+                "required": ["decision", "expected_version"]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "review_status": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["id", "review_status", "version"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}/org-map": {
+      "get": {
+        "tags": ["org-map"],
+        "description": "Organization map conforming to contracts/org-map.v2.schema.json.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/audit-events": {
+      "get": {
+        "tags": ["audit"],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            },
+            "in": "query",
+            "name": "cursor",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 50
+            },
+            "in": "query",
+            "name": "entity_type",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "in": "query",
+            "name": "entity_id",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "actor_user_id": {
+                            "type": ["string", "null"]
+                          },
+                          "actor_type": {
+                            "type": "string"
+                          },
+                          "action": {
+                            "type": "string"
+                          },
+                          "entity_type": {
+                            "type": "string"
+                          },
+                          "entity_id": {
+                            "type": ["string", "null"]
+                          },
+                          "outcome": {
+                            "type": "string"
+                          },
+                          "correlation_id": {
+                            "type": "string"
+                          },
+                          "metadata": {},
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "actor_user_id",
+                          "actor_type",
+                          "action",
+                          "entity_type",
+                          "entity_id",
+                          "outcome",
+                          "correlation_id",
+                          "metadata",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "has_more": {
+                      "type": "boolean"
+                    },
+                    "next_cursor": {
+                      "type": ["string", "null"]
+                    }
+                  },
+                  "required": ["data", "has_more", "next_cursor"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

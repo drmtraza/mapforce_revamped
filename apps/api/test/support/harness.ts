@@ -25,15 +25,19 @@ export class RecordingDispatcher implements ResearchDispatcher {
   started: ResearchWorkflowInput[] = [];
   cancelled: string[] = [];
   failNext = 0;
+  /** When set, calls are also delivered to a real dispatcher (workflow tests). */
+  forward: ResearchDispatcher | null = null;
   async start(input: ResearchWorkflowInput) {
     if (this.failNext > 0) {
       this.failNext -= 1;
       throw new Error('temporal unavailable');
     }
     this.started.push(input);
+    await this.forward?.start(input);
   }
   async cancel(workflowId: string) {
     this.cancelled.push(workflowId);
+    await this.forward?.cancel(workflowId);
   }
 }
 
