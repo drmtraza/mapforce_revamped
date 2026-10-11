@@ -47,15 +47,25 @@ export function validateAdapterResult(data: unknown): ValidationResult<AdapterRe
   const structural = run(validators.adapterResult, data);
   if (!structural.ok) return structural;
   const r = structural.value;
+  const companies = r.companies ?? [];
   const errors: string[] = [];
 
   if (r.status === 'failed') {
     if (r.error === null) errors.push('/error required when status is failed');
-    if (r.evidence.length || r.company_claims.length || r.people.length || r.relationships.length) {
+    if (
+      r.evidence.length ||
+      r.company_claims.length ||
+      companies.length ||
+      r.people.length ||
+      r.relationships.length
+    ) {
       errors.push('/status failed results must not carry data');
     }
   } else if (r.error !== null) {
     errors.push('/error must be null when status is succeeded');
+  }
+  if (companies.length && r.operation !== 'discover_companies') {
+    errors.push('/companies only allowed for discover_companies');
   }
 
   const evidenceRefs = new Set<string>();
@@ -74,6 +84,12 @@ export function validateAdapterResult(data: unknown): ValidationResult<AdapterRe
     }
   };
   r.company_claims.forEach((c, i) => checkEvidence(`/company_claims/${i}`, c.evidence_refs));
+  const companyDomains = new Set<string>();
+  companies.forEach((c, i) => {
+    checkEvidence(`/companies/${i}`, c.evidence_refs);
+    if (companyDomains.has(c.domain)) errors.push(`/companies/${i} duplicate domain ${c.domain}`);
+    companyDomains.add(c.domain);
+  });
   r.people.forEach((p, i) => checkEvidence(`/people/${i}`, p.evidence_refs));
   r.relationships.forEach((rel, i) => {
     checkEvidence(`/relationships/${i}`, rel.evidence_refs);

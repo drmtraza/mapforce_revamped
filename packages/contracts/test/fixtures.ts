@@ -2,6 +2,46 @@ import type { AdapterResult } from '../src/index.ts';
 
 const HASH = `sha256:${'a'.repeat(64)}`;
 
+export function validDiscoveryResult(): AdapterResult {
+  return {
+    schema_version: 1,
+    source_key: 'mock_search',
+    provider: 'mock',
+    operation: 'discover_companies',
+    status: 'succeeded',
+    error: null,
+    usage: { request_count: 1, units: 1, unit_type: 'queries' },
+    evidence: [
+      {
+        ref: 'ev-q',
+        source_url: 'https://search.mock.example/?q=logistics',
+        fetched_at: '2026-10-01T00:00:00Z',
+        published_at: null,
+        content_type: 'application/json',
+        content_hash: HASH,
+        excerpt: 'Northwind Logistics: freight software for mid-market shippers.',
+        normalized_content: { results: 1 },
+        license_metadata: { synthetic: true },
+      },
+    ],
+    company_claims: [],
+    companies: [
+      {
+        ref: 'c-northwind',
+        name: 'Northwind Logistics',
+        domain: 'northwind-logistics.example',
+        country_code: 'GB',
+        description: 'Freight software for mid-market shippers.',
+        claim_type: 'provider_fact',
+        confidence: 0.6,
+        evidence_refs: ['ev-q'],
+      },
+    ],
+    people: [],
+    relationships: [],
+  };
+}
+
 export function validPeopleResult(): AdapterResult {
   return {
     schema_version: 1,

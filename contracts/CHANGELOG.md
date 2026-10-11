@@ -1,5 +1,13 @@
 # Contract changelog
 
+## 2026-10-11 (Phase 2)
+- **`adapter-result.v1.schema.json` — additive, non-breaking.**
+  - `operation` enum adds `discover_companies`.
+  - New optional `companies` array of discovery candidates `{ref, name, domain, country_code, description, claim_type, confidence, evidence_refs}`; `claim_type` is limited to `source_fact`/`provider_fact`, `domain` must be a lowercase bare hostname, and every candidate must cite evidence in the same payload.
+  - The control-plane validator also rejects duplicate candidate domains and `companies` on any other operation.
+  - Existing v1 payloads (without `companies`) remain valid; `schema_version` stays `1`.
+- **`openapi.v1.json`** — additive endpoints for sources, imports, discovery and dead letters (see `docs/PHASE_2_REPORT.md`). No existing response shape is removed or narrowed.
+
 ## 2026-10-11
 - **Added `org-map.v2.schema.json`** (breaking vs v1; approved by owner, decision D8).
   - `schema_version: 2` required.

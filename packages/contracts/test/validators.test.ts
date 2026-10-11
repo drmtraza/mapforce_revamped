@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { validateAdapterResult, validateEventEnvelope, validateOrgMapV2 } from '../src/index.ts';
-import { validPeopleResult } from './fixtures.ts';
+import { validDiscoveryResult, validPeopleResult } from './fixtures.ts';
 
 describe('validateAdapterResult', () => {
   it('accepts a well-formed result', () => {
@@ -66,6 +66,52 @@ describe('validateAdapterResult', () => {
     const r = validPeopleResult();
     r.evidence[0]!.source_url = 'file:///etc/passwd';
     expect(validateAdapterResult(r).ok).toBe(false);
+  });
+});
+
+describe('validateAdapterResult (discover_companies)', () => {
+  it('accepts candidate companies with cited evidence', () => {
+    expect(validateAdapterResult(validDiscoveryResult()).ok).toBe(true);
+  });
+
+  it('rejects candidates without resolvable evidence', () => {
+    const r = validDiscoveryResult();
+    r.companies![0]!.evidence_refs = ['ev-missing'];
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('rejects malformed or non-lowercase domains, and URL-shaped domains', () => {
+    for (const domain of [
+      'Northwind.EXAMPLE',
+      'https://x.example',
+      'localhost',
+      'x.example/path',
+    ]) {
+      const r = validDiscoveryResult();
+      r.companies![0]!.domain = domain;
+      expect(validateAdapterResult(r).ok, domain).toBe(false);
+    }
+  });
+
+  it('rejects candidates labelled as model inference', () => {
+    const r = validDiscoveryResult() as unknown as { companies: { claim_type: string }[] };
+    r.companies[0]!.claim_type = 'model_inference';
+    expect(validateAdapterResult(r).ok).toBe(false);
+  });
+
+  it('rejects duplicate domains and candidates on other operations', () => {
+    const dup = validDiscoveryResult();
+    dup.companies!.push({ ...dup.companies![0]!, ref: 'c-2' });
+    expect(validateAdapterResult(dup).ok).toBe(false);
+    const wrongOp = validDiscoveryResult();
+    wrongOp.operation = 'fetch_company_evidence';
+    expect(validateAdapterResult(wrongOp).ok).toBe(false);
+  });
+
+  it('still accepts v1 payloads without the optional companies array', () => {
+    const r = validPeopleResult();
+    expect('companies' in r).toBe(false);
+    expect(validateAdapterResult(r).ok).toBe(true);
   });
 });
 

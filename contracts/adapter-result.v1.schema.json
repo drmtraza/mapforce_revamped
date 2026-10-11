@@ -24,7 +24,12 @@
     "provider": { "type": "string", "minLength": 1, "maxLength": 100 },
     "operation": {
       "type": "string",
-      "enum": ["fetch_company_evidence", "discover_people", "fetch_registry_record"]
+      "enum": [
+        "fetch_company_evidence",
+        "discover_people",
+        "fetch_registry_record",
+        "discover_companies"
+      ]
     },
     "status": { "type": "string", "enum": ["succeeded", "failed"] },
     "error": {
@@ -103,6 +108,39 @@
             ]
           },
           "value": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "claim_type": { "$ref": "#/$defs/sourcedClaimType" },
+          "confidence": { "$ref": "#/$defs/confidence" },
+          "evidence_refs": { "$ref": "#/$defs/refs" }
+        }
+      }
+    },
+    "companies": {
+      "description": "Candidate companies from a discovery operation. Optional; candidates are reviewed before any company record is created.",
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref",
+          "name",
+          "domain",
+          "country_code",
+          "description",
+          "claim_type",
+          "confidence",
+          "evidence_refs"
+        ],
+        "properties": {
+          "ref": { "$ref": "#/$defs/ref" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "domain": {
+            "type": "string",
+            "maxLength": 253,
+            "pattern": "^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$"
+          },
+          "country_code": { "type": ["string", "null"], "pattern": "^[A-Z]{2}$" },
+          "description": { "type": ["string", "null"], "maxLength": 1000 },
           "claim_type": { "$ref": "#/$defs/sourcedClaimType" },
           "confidence": { "$ref": "#/$defs/confidence" },
           "evidence_refs": { "$ref": "#/$defs/refs" }

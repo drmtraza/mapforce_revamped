@@ -10,7 +10,18 @@ export type Persona =
   | 'unknown';
 
 export type AdapterOperation =
-  'fetch_company_evidence' | 'discover_people' | 'fetch_registry_record';
+  'fetch_company_evidence' | 'discover_people' | 'fetch_registry_record' | 'discover_companies';
+
+export interface AdapterCompanyCandidate {
+  ref: string;
+  name: string;
+  domain: string;
+  country_code: string | null;
+  description: string | null;
+  claim_type: SourcedClaimType;
+  confidence: number;
+  evidence_refs: string[];
+}
 
 export interface AdapterEvidence {
   ref: string;
@@ -72,6 +83,7 @@ export interface AdapterResult {
   usage: { request_count: number; units: number; unit_type: string };
   evidence: AdapterEvidence[];
   company_claims: AdapterCompanyClaim[];
+  companies?: AdapterCompanyCandidate[];
   people: AdapterPerson[];
   relationships: AdapterRelationship[];
 }
