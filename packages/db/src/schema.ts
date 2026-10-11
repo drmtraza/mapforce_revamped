@@ -543,6 +543,118 @@ export interface OutreachDraftsTable {
   created_at: GeneratedTimestamp;
 }
 
+export type PipelineStage =
+  | 'identified'
+  | 'researching'
+  | 'qualified'
+  | 'outreach'
+  | 'meeting'
+  | 'closed_won'
+  | 'closed_lost'
+  | 'on_hold';
+
+export interface ScoringPoliciesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  version: number;
+  weights: Json;
+  active: Generated<boolean>;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface ScoreRunsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  icp_profile_id: string;
+  scoring_policy_id: string;
+  scoring_version: number;
+  total_score: number;
+  eligible: boolean;
+  suppression_override: Generated<boolean>;
+  factors: Json;
+  explanation: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface AccountAssignmentsTable {
+  tenant_id: string;
+  company_id: string;
+  owner_user_id: string | null;
+  stage: Generated<PipelineStage>;
+  priority: Generated<'low' | 'normal' | 'high'>;
+  next_action_at: Timestamp | null;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface WorkspaceListsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  name: string;
+  kind: 'companies' | 'people';
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface ListItemsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  list_id: string;
+  entity_type: 'company' | 'person';
+  entity_id: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface TasksTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string | null;
+  person_id: string | null;
+  owner_user_id: string | null;
+  title: string;
+  description: string | null;
+  status: Generated<'open' | 'done' | 'cancelled'>;
+  due_at: Timestamp | null;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface NotesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string | null;
+  person_id: string | null;
+  author_user_id: string;
+  body: string;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface ExportBatchesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  scope: 'companies' | 'list';
+  list_id: string | null;
+  filename: string;
+  row_count: number;
+  omitted_suppressed: Generated<number>;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface TenantBudgetsTable {
+  tenant_id: string;
+  daily_research_job_limit: number | null;
+  daily_enrich_limit: number | null;
+  daily_ai_run_limit: number | null;
+  daily_export_limit: number | null;
+  updated_by: string | null;
+  updated_at: GeneratedTimestamp;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -581,4 +693,13 @@ export interface Database {
   ai_runs: AiRunsTable;
   ai_quarantine: AiQuarantineTable;
   outreach_drafts: OutreachDraftsTable;
+  scoring_policies: ScoringPoliciesTable;
+  score_runs: ScoreRunsTable;
+  account_assignments: AccountAssignmentsTable;
+  workspace_lists: WorkspaceListsTable;
+  list_items: ListItemsTable;
+  tasks: TasksTable;
+  notes: NotesTable;
+  export_batches: ExportBatchesTable;
+  tenant_budgets: TenantBudgetsTable;
 }

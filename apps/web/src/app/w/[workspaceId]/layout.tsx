@@ -7,6 +7,8 @@ import { AppHeader } from '@/components/app-header';
 
 const NAV = [
   { href: 'companies', label: 'Companies' },
+  { href: 'pipeline', label: 'Pipeline' },
+  { href: 'lists', label: 'Lists' },
   { href: 'discovery', label: 'Discovery' },
   { href: 'imports', label: 'Imports' },
   { href: 'icp', label: 'Ideal customer profiles' },

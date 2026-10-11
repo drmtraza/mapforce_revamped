@@ -36,6 +36,12 @@ import { deadLetterRoutes } from './modules/outbox/routes.ts';
 import { signalRoutes } from './modules/signals/routes.ts';
 import { suppressionRoutes } from './modules/suppressions/routes.ts';
 import { enrichmentRoutes } from './modules/enrichment/routes.ts';
+import { scoringRoutes } from './modules/scoring/routes.ts';
+import { accountRoutes } from './modules/accounts/routes.ts';
+import { listRoutes } from './modules/lists/routes.ts';
+import { crmRoutes } from './modules/crm/routes.ts';
+import { exportRoutes } from './modules/exports/routes.ts';
+import { usageRoutes } from './modules/usage/routes.ts';
 
 export interface AppDeps {
   config: Config;
@@ -162,6 +168,12 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(signalRoutes(deps));
       await v1.register(suppressionRoutes(deps));
       await v1.register(enrichmentRoutes(deps));
+      await v1.register(scoringRoutes(deps));
+      await v1.register(accountRoutes(deps));
+      await v1.register(listRoutes(deps));
+      await v1.register(crmRoutes(deps));
+      await v1.register(exportRoutes(deps));
+      await v1.register(usageRoutes(deps));
     },
     { prefix: '/api/v1' },
   );

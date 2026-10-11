@@ -249,6 +249,8 @@ Migrations are forward-only SQL with documented rollback/forward-fix notes; each
 | 0017 | `account_assignments`, `tasks`, `notes`, `activity_events`, `lists`, `list_items`, `outreach_drafts`, `exports` | 5 |
 | 0018 | usage plans/quotas/budgets, feature flags, kill switches | 5 |
 
+As-built numbering diverged: Phase 2–4 consumed 0011–0012 under different names. Phase 5 lands as a single forward-only `0013_bd_workspace.sql` covering scoring policies/runs, accounts, lists, tasks, notes, export batches and tenant budget overrides. Billing/plan tables are not implemented.
+
 ---
 
 ## 9. Git / delivery workflow (pending D11)
@@ -319,4 +321,4 @@ Phases 2–7: acceptance criteria are the roadmap exit criteria (§6) plus PRD �
 
 Owner reviews §3 and §4. On approval of D1–D8 and D11, implementation of Phase 1 begins on `phase-1/foundation-vertical-slice` in small commits, each followed by format/lint/typecheck/test runs with results reported verbatim.
 
-**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md`. Phase 2 implemented on `phase-2/discovery-evidence` — see `PHASE_2_REPORT.md`. Phase 3 implemented on `phase-3/people-enrichment-signals` — see `PHASE_3_REPORT.md`. Phase 4 implemented on `phase-4/ai-orgmap` — see `PHASE_4_REPORT.md`. Phase 5 starts only after owner review of that report.
+**Status:** Phase 1 implemented — see `PHASE_1_REPORT.md`. Phase 2 implemented on `phase-2/discovery-evidence` — see `PHASE_2_REPORT.md`. Phase 3 implemented on `phase-3/people-enrichment-signals` — see `PHASE_3_REPORT.md`. Phase 4 implemented on `phase-4/ai-orgmap` — see `PHASE_4_REPORT.md`. Phase 5 implemented on `phase-5/bd-workspace` — see `PHASE_5_REPORT.md`. Phase 6 starts only after owner review of that report.

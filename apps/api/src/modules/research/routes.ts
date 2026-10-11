@@ -6,6 +6,7 @@ import type { AppDeps } from '../../app.ts';
 import { AppError, notFound } from '../../errors.ts';
 import { requireTenant, type TenantCtx } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
+import { resolveTenantLimits } from '../budgets/service.ts';
 import { loadCompany } from '../companies/routes.ts';
 import {
   ACTIVE_JOB_STATUSES as ACTIVE,
@@ -132,12 +133,12 @@ export const researchRoutes =
             const reusable = await findReusableJob(trx, ctx, companyId, key);
             if (reusable) return reusable;
 
-            const quotaExceeded = await dailyJobQuotaExceeded(
-              trx,
-              ctx,
-              config.TENANT_DAILY_RESEARCH_JOB_LIMIT,
-              { action: 'research.quota_exceeded', type: 'company', id: companyId },
-            );
+            const limits = await resolveTenantLimits(trx, ctx.tenantId, config);
+            const quotaExceeded = await dailyJobQuotaExceeded(trx, ctx, limits.research, {
+              action: 'research.quota_exceeded',
+              type: 'company',
+              id: companyId,
+            });
             if (quotaExceeded) return { quotaExceeded: true as const };
 
             const plan = await planSources(trx, ctx.tenantId, config, RESEARCH_OPERATIONS, {

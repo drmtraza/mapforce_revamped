@@ -13,6 +13,13 @@ const ROLES = {
   startEnrich: ['owner', 'admin', 'manager', 'researcher'],
   runOrgMap: ['owner', 'admin', 'manager', 'researcher'],
   writeSuppression: ['owner', 'admin', 'manager'],
+  runScore: ['owner', 'admin', 'manager', 'researcher'],
+  writeLists: ['owner', 'admin', 'manager', 'researcher', 'representative'],
+  assignAccounts: ['owner', 'admin', 'manager'],
+  writeCrm: ['owner', 'admin', 'manager', 'researcher', 'representative'],
+  startExport: ['owner', 'admin', 'manager'],
+  readUsage: ['owner', 'admin', 'manager', 'auditor'],
+  manageBudget: ['owner', 'admin'],
 } as const satisfies Record<string, readonly WorkspaceRole[]>;
 
 export function allowed(role: WorkspaceRole | null, action: keyof typeof ROLES): boolean {

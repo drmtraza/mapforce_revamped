@@ -51,12 +51,15 @@ Only verified relationships may be displayed as facts. Inferences must be visibl
 
 ### ICP, scoring and workflow
 `icp_profiles(id, tenant_id, name, definition_json, version, active, created_by, created_at)`
-`score_runs(id, tenant_id, target_type, target_id, scoring_version, total_score, factor_scores_json, explanation_json, created_at)`
-`account_assignments(tenant_id, company_id, owner_user_id, stage, priority, next_action_at, created_at, updated_at)`
-`tasks(id, tenant_id, company_id nullable, person_id nullable, owner_user_id, status, due_at, title, description, created_at)`
-`notes(id, tenant_id, company_id nullable, person_id nullable, author_user_id, body, created_at, updated_at)`
-`activity_events(id, tenant_id, actor_user_id, entity_type, entity_id, event_type, payload_json, created_at)`
-`lists(id, tenant_id, name, kind, created_by, created_at)` and `list_items(list_id, entity_type, entity_id, added_at)`.
+As-built Phase 5 (migration `0013_bd_workspace.sql`):
+- `scoring_policies(id, tenant_id, version, weights jsonb, active, created_by, created_at)` — one active policy per tenant; weights must sum to 100.
+- `score_runs(id, tenant_id, company_id, icp_profile_id, scoring_policy_id, scoring_version, total_score 0–100, eligible, suppression_override, factors jsonb, explanation, created_at)`
+- `account_assignments` PK `(tenant_id, company_id)`; stages `identified|researching|qualified|outreach|meeting|closed_won|closed_lost|on_hold`
+- `workspace_lists` + `list_items` (unique per list/entity)
+- `tasks`, `notes`
+- `export_batches` (scope `companies|list`, row_count, omitted_suppressed)
+- `tenant_budgets` (nullable daily overrides; missing row falls back to env defaults)
+`activity_events` remains a conceptual timeline; audit uses `audit_events`.
 
 ### Jobs, usage and audit
 `workflow_jobs(id, tenant_id, job_type, status, idempotency_key, input_json, result_json, cost_estimate, cost_actual, started_at, finished_at, error_code, error_summary, created_at)`

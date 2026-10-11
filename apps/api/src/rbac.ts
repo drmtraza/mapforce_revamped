@@ -23,7 +23,16 @@ export type Permission =
   | 'discovery.start'
   | 'import.read'
   | 'import.write'
-  | 'outbox.manage';
+  | 'outbox.manage'
+  | 'score.run'
+  | 'list.read'
+  | 'list.write'
+  | 'account.assign'
+  | 'task.write'
+  | 'note.write'
+  | 'export.start'
+  | 'usage.read'
+  | 'budget.manage';
 
 const ALL: MembershipRole[] = [
   'owner',
@@ -58,6 +67,15 @@ const MATRIX: Record<Permission, readonly MembershipRole[]> = {
   'import.read': ALL,
   'import.write': ['owner', 'admin', 'manager', 'researcher'],
   'outbox.manage': ['owner', 'admin'],
+  'score.run': ['owner', 'admin', 'manager', 'researcher'],
+  'list.read': ALL,
+  'list.write': ['owner', 'admin', 'manager', 'researcher', 'representative'],
+  'account.assign': ['owner', 'admin', 'manager'],
+  'task.write': ['owner', 'admin', 'manager', 'researcher', 'representative'],
+  'note.write': ['owner', 'admin', 'manager', 'researcher', 'representative'],
+  'export.start': ['owner', 'admin', 'manager'],
+  'usage.read': ['owner', 'admin', 'manager', 'auditor'],
+  'budget.manage': ['owner', 'admin'],
 };
 
 export function can(role: MembershipRole, permission: Permission): boolean {

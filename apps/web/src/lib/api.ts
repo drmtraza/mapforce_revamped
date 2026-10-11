@@ -1,6 +1,6 @@
 import type { paths } from './api-types';
 
-type Method = 'get' | 'post' | 'patch';
+type Method = 'get' | 'post' | 'patch' | 'delete';
 type Json<T> = T extends { content: { 'application/json': infer B } } ? B : never;
 
 /** Response body of the first 2xx status declared for `path` + `method`. */
@@ -30,7 +30,7 @@ export class ApiError extends Error {
 }
 
 interface RequestOptions {
-  method?: 'GET' | 'POST' | 'PATCH';
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE';
   body?: unknown;
   /** Sent verbatim instead of a JSON `body`, e.g. a CSV upload. */
   rawBody?: { contentType: string; text: string };

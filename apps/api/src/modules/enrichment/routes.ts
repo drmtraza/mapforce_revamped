@@ -6,6 +6,7 @@ import type { AppDeps } from '../../app.ts';
 import { AppError, notFound } from '../../errors.ts';
 import { requireTenant } from '../../http/context.ts';
 import { recordAudit } from '../audit/service.ts';
+import { resolveTenantLimits } from '../budgets/service.ts';
 import { hashContactValue } from '../contacts/crypto.ts';
 import {
   ACTIVE_JOB_STATUSES as ACTIVE,
@@ -100,10 +101,11 @@ export const enrichmentRoutes =
               .executeTakeFirst();
             if (existing) return existing;
 
+            const limits = await resolveTenantLimits(trx, ctx.tenantId, config);
             const quotaExceeded = await dailyJobQuotaExceeded(
               trx,
               ctx,
-              config.TENANT_DAILY_ENRICH_LIMIT,
+              limits.enrich,
               { action: 'enrichment.quota_exceeded', type: 'person', id: personId },
               'person_enrichment',
             );

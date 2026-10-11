@@ -257,6 +257,96 @@ export default function SettingsPage() {
           </ul>
         ) : null}
       </section>
+
+      <UsageBudget workspaceId={workspaceId} role={role} />
     </>
+  );
+}
+
+function UsageBudget({
+  workspaceId,
+  role,
+}: {
+  workspaceId: string;
+  role: ReturnType<typeof useWorkspaceRole>;
+}) {
+  const usage = useApi<{
+    jobs: Record<string, number>;
+    exports: number;
+    ai_tokens: number;
+    limits: { research: number; enrich: number; ai: number; export: number };
+    note: string;
+  }>('/api/v1/usage', workspaceId);
+  const budget = useApi<{
+    daily_export_limit: number | null;
+    effective: { export: number };
+  }>('/api/v1/workspace-budget', workspaceId);
+  const [exportLimit, setExportLimit] = useState('');
+  const [error, setError] = useState<unknown>(null);
+
+  return (
+    <section aria-labelledby="usage" className="card">
+      <h2 id="usage">Usage and budgets</h2>
+      <p className="muted small">
+        Last 24 hours. Billing/plan integration is not enabled; these are workspace meters and admin
+        overrides.
+      </p>
+      <ErrorNotice error={usage.error ?? budget.error ?? error} />
+      {usage.data ? (
+        <dl className="facts">
+          <dt>Research jobs</dt>
+          <dd>
+            {usage.data.jobs.company_research} / {usage.data.limits.research}
+          </dd>
+          <dt>Enrich jobs</dt>
+          <dd>
+            {usage.data.jobs.person_enrichment} / {usage.data.limits.enrich}
+          </dd>
+          <dt>AI org-map jobs</dt>
+          <dd>
+            {usage.data.jobs.company_orgmap} / {usage.data.limits.ai}
+          </dd>
+          <dt>Exports</dt>
+          <dd>
+            {usage.data.exports} / {usage.data.limits.export}
+          </dd>
+          <dt>AI tokens</dt>
+          <dd>{usage.data.ai_tokens}</dd>
+        </dl>
+      ) : null}
+      {allowed(role, 'manageBudget') ? (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            setError(null);
+            try {
+              await api('/api/v1/workspace-budget', {
+                method: 'PATCH',
+                workspaceId,
+                body: {
+                  daily_export_limit: exportLimit.trim() === '' ? null : Number(exportLimit),
+                },
+              });
+              budget.reload();
+              usage.reload();
+            } catch (err) {
+              setError(err);
+            }
+          }}
+        >
+          <label>
+            Daily export limit override (blank = default {budget.data?.effective.export ?? 20})
+            <input
+              inputMode="numeric"
+              value={exportLimit}
+              onChange={(e) => setExportLimit(e.target.value)}
+            />
+          </label>
+          <button type="submit" className="button">
+            Save budget override
+          </button>
+        </form>
+      ) : null}
+    </section>
   );
 }

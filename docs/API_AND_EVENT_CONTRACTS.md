@@ -56,17 +56,22 @@
 
 ### Signals and scoring
 - `GET /companies/{id}/signals`
+- `GET /scoring-policies`
+- `POST /scoring-policies`
 - `POST /icp-profiles/{id}/score-runs`
 - `GET /score-runs/{id}`
+- `GET /companies/{id}/score`
 
 ### BD workflow
 - `GET /accounts`
-- `PATCH /accounts/{id}/assignment`
-- `POST /tasks`
-- `POST /notes`
-- `POST /outreach-drafts`
-- `POST /exports` (must apply suppression and role policy)
+- `PATCH /accounts/{companyId}`
+- `GET/POST /lists`, `GET /lists/{id}`, `POST /lists/{id}/items`, `DELETE /lists/{id}/items/{itemId}`
+- `GET /companies/{id}/tasks`, `POST /tasks`, `PATCH /tasks/{id}`
+- `GET /companies/{id}/notes`, `POST /notes`
+- `PATCH /outreach-drafts/{id}` (approve or reject; never sent)
+- `POST /exports` (suppression applied; formula-injection-safe CSV; contact values omitted)
 - `GET /usage`
+- `GET/PATCH /workspace-budget`
 - `GET /audit-events`
 
 ## Async job contract

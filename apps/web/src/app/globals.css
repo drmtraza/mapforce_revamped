@@ -443,3 +443,12 @@ legend {
 .arrowhead {
   fill: #4f5866;
 }
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+.pipeline-col h2 {
+  font-size: 1rem;
+  text-transform: capitalize;
+}

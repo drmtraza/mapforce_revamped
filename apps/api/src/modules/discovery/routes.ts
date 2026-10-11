@@ -9,6 +9,7 @@ import { decodeCursor, PageMeta, PageQuery, paginate } from '../../http/paginati
 import { discoveryWorkflowId } from '../../temporal/dispatcher.ts';
 import { DISCOVERY_OPERATIONS, type DiscoveryWorkflowInput } from '../../temporal/types.ts';
 import { recordAudit } from '../audit/service.ts';
+import { resolveTenantLimits } from '../budgets/service.ts';
 import { Company, toCompanyDto } from '../companies/routes.ts';
 import {
   ACTIVE_JOB_STATUSES,
@@ -179,11 +180,16 @@ export const discoveryRoutes =
             if (Number(active.n) >= MAX_ACTIVE_DISCOVERY_JOBS) return { tooMany: true as const };
 
             if (
-              await dailyJobQuotaExceeded(trx, ctx, config.TENANT_DAILY_RESEARCH_JOB_LIMIT, {
-                action: 'discovery.quota_exceeded',
-                type: 'discovery_job',
-                id: null,
-              })
+              await dailyJobQuotaExceeded(
+                trx,
+                ctx,
+                (await resolveTenantLimits(trx, ctx.tenantId, config)).research,
+                {
+                  action: 'discovery.quota_exceeded',
+                  type: 'discovery_job',
+                  id: null,
+                },
+              )
             ) {
               return { quotaExceeded: true as const };
             }

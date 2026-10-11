@@ -295,6 +295,77 @@ export default function IcpPage() {
           <ErrorNotice error={error} />
         </form>
       </section>
+      <ScoringWeights workspaceId={workspaceId} />
     </>
+  );
+}
+
+function ScoringWeights({ workspaceId }: { workspaceId: string }) {
+  const policy = useApi<{
+    version: number;
+    weights: {
+      icp_fit: number;
+      role_relevance: number;
+      intent: number;
+      completeness: number;
+      corroboration: number;
+    };
+    label: string;
+  }>('/api/v1/scoring-policies', workspaceId);
+  const [error, setError] = useState<unknown>(null);
+  const [weights, setWeights] = useState<string | null>(null);
+
+  const current = weights
+    ? (JSON.parse(weights) as NonNullable<typeof policy.data>['weights'])
+    : policy.data?.weights;
+
+  return (
+    <section className="card" aria-labelledby="weights">
+      <h2 id="weights">Scoring weights</h2>
+      <p className="muted small">
+        Versioned 0–100 factors that must sum to 100. {policy.data?.label} · version{' '}
+        {policy.data?.version ?? '—'}.
+      </p>
+      <ErrorNotice error={policy.error ?? error} />
+      {current ? (
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!policy.data) return;
+            setError(null);
+            try {
+              await api('/api/v1/scoring-policies', {
+                method: 'POST',
+                workspaceId,
+                body: { expected_version: policy.data.version, weights: current },
+              });
+              policy.reload();
+            } catch (err) {
+              setError(err);
+            }
+          }}
+        >
+          {(['icp_fit', 'role_relevance', 'intent', 'completeness', 'corroboration'] as const).map(
+            (key) => (
+              <label key={key}>
+                {key.replace('_', ' ')}
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={current[key]}
+                  onChange={(e) =>
+                    setWeights(JSON.stringify({ ...current, [key]: Number(e.target.value) }))
+                  }
+                />
+              </label>
+            ),
+          )}
+          <button type="submit" className="button">
+            Save new weight version
+          </button>
+        </form>
+      ) : null}
+    </section>
   );
 }

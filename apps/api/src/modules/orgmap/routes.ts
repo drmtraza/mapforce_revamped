@@ -7,6 +7,7 @@ import type { AppDeps } from '../../app.ts';
 import { AppError } from '../../errors.ts';
 import { requireTenant } from '../../http/context.ts';
 import { applyOverlay, gatherOrgMapRequest } from '../ai/gather.ts';
+import { resolveTenantLimits } from '../budgets/service.ts';
 import { persistAiRun } from '../ai/persist.ts';
 import { deduceOrgMap, selectProvider } from '../ai/service.ts';
 import { recordAudit } from '../audit/service.ts';
@@ -108,10 +109,11 @@ export const orgMapRoutes =
               .executeTakeFirst();
             if (existing) return existing;
 
+            const limits = await resolveTenantLimits(trx, ctx.tenantId, config);
             const quotaExceeded = await dailyJobQuotaExceeded(
               trx,
               ctx,
-              config.TENANT_DAILY_AI_RUN_LIMIT,
+              limits.ai,
               { action: 'orgmap.quota_exceeded', type: 'company', id: companyId },
               'company_orgmap',
             );
@@ -336,6 +338,43 @@ export const orgMapRoutes =
             })),
             note: 'Drafts are for human review. The product never sends outreach automatically.',
           };
+        });
+      },
+    );
+
+    app.patch(
+      '/outreach-drafts/:id',
+      {
+        schema: {
+          tags: ['org-map'],
+          params: z.object({ id: z.uuid() }),
+          body: z.object({ status: z.enum(['approved', 'rejected']) }),
+          response: {
+            200: z.object({ id: z.string(), status: z.string() }),
+          },
+        },
+      },
+      async (request) => {
+        const ctx = await requireTenant(db, request, 'people.review');
+        return withContext(db, ctx, async (trx) => {
+          const updated = await trx
+            .updateTable('outreach_drafts')
+            .set({ status: request.body.status })
+            .where('tenant_id', '=', ctx.tenantId)
+            .where('id', '=', request.params.id)
+            .returning(['id', 'status'])
+            .executeTakeFirst();
+          if (!updated) throw new AppError('NOT_FOUND', 'Outreach draft not found.');
+          await recordAudit(trx, {
+            tenantId: ctx.tenantId,
+            actorUserId: ctx.userId,
+            action: 'outreach.reviewed',
+            entityType: 'outreach_draft',
+            entityId: updated.id,
+            correlationId: ctx.correlationId,
+            metadata: { status: updated.status },
+          });
+          return updated;
         });
       },
     );
