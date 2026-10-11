@@ -36,7 +36,7 @@ Run on Windows 11, Node 24.11.0, Python 3.12.10, Docker Desktop.
 | `docker build` api, web, research-worker + Trivy 0.69 (HIGH/CRITICAL, fixable) | 0 findings for all three after remediation (see §6) |
 | Image smoke: API `/readyz`, control worker reaches `RUNNING`, web serves `/login` with production CSP | passed |
 
-CI has been defined but had not yet run on GitHub at the time of writing; its first run on this branch is the evidence for acceptance criterion 13.
+GitHub Actions [run 38113913381](https://github.com/drmtraza/mapforce_revamped/actions/runs/38113913381) on this branch: all 8 jobs succeeded (static checks + unit + contract drift, integration, Python worker, secret scan + dependency audit, three image builds with Trivy, and the full-stack Playwright E2E on a clean Ubuntu runner).
 
 ## 3. Acceptance criteria (IMPLEMENTATION_PLAN §11, Phase 1)
 
@@ -54,7 +54,7 @@ CI has been defined but had not yet run on GitHub at the time of writing; its fi
 | 10 | Audit trail lists §7.1 actions with actor, correlation ID, outcome | Met | E2E checks workspace, ICP, company, research requested/completed, review |
 | 11 | Isolation across API, DB RLS, background job, object storage | Met | db RLS suite; API 404 suite; activity rejects cross-tenant writes; tenant-prefixed keys + URL issuance after authorization |
 | 12 | Bounded retries and timeouts everywhere | Met | control activities 5 attempts/1 min; adapters 3 attempts, 1 min start-to-close, 5 min schedule-to-close; worker 45 s timeout and record ceilings; outbox dead-letters after 10 attempts; workflow 30 min execution timeout |
-| 13 | CI green | Pending | all checks pass locally; awaiting first GitHub Actions run |
+| 13 | CI green | Met | GitHub Actions run 38113913381, 8/8 jobs |
 | 14 | `docker compose up` + one command reproduces the demo with zero credentials | Partially met | infra and worker run in compose with placeholder credentials; API, control worker and web run as three host commands (see README). Containerising them needs an OIDC issuer reachable identically from browser and containers — planned for Phase 2 |
 
 ## 4. Migrations
