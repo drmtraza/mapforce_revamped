@@ -1,0 +1,109 @@
+# Local development infrastructure only. All credentials below are local-only
+# placeholders and must never be reused in any shared or production environment.
+name: mapforce
+
+services:
+  postgres:
+    image: postgres:16.15-alpine
+    environment:
+      POSTGRES_DB: mapforce
+      POSTGRES_USER: mapforce_owner
+      POSTGRES_PASSWORD: ${POSTGRES_OWNER_PASSWORD:-local-owner-pw}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-local-app-pw}
+      RELAY_DB_PASSWORD: ${RELAY_DB_PASSWORD:-local-relay-pw}
+    ports:
+      - '5432:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mapforce_owner -d mapforce']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4.11-alpine
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  temporal:
+    image: temporalio/temporal:1.9.1
+    command:
+      [
+        'server',
+        'start-dev',
+        '--ip',
+        '0.0.0.0',
+        '--ui-ip',
+        '0.0.0.0',
+        '--db-filename',
+        '/data/temporal.db',
+      ]
+    ports:
+      - '7233:7233'
+      - '8233:8233'
+    volumes:
+      - temporaldata:/data
+    healthcheck:
+      test: ['CMD', 'temporal', 'operator', 'cluster', 'health', '--address', '127.0.0.1:7233']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  objectstore:
+    image: rustfs/rustfs:1.0.1
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY_ID:-local-s3-key}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_ACCESS_KEY:-local-s3-secret}
+      RUSTFS_CONSOLE_ENABLE: 'true'
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - objectdata:/data
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    command: ['start-dev', '--import-realm', '--http-port=8080']
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-local-admin-pw}
+      KC_HEALTH_ENABLED: 'true'
+      KC_HOSTNAME: http://localhost:8080
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 40
+
+  research-worker:
+    build:
+      context: ../../workers/research
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_NAMESPACE: default
+      RESEARCH_TASK_QUEUE: research-python
+      LOG_LEVEL: INFO
+    depends_on:
+      temporal:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  temporaldata:
+  objectdata:

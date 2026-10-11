@@ -1,0 +1,23 @@
+{
+  "name": "@mapforce/db",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "migrate": "node src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test:integration": "vitest run"
+  },
+  "dependencies": {
+    "kysely": "0.29.6",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@testcontainers/postgresql": "12.2.0",
+    "@types/pg": "8.23.1",
+    "testcontainers": "12.2.0"
+  }
+}

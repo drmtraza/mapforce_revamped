@@ -1,0 +1,14 @@
+pnpm-lock.yaml
+node_modules
+.next
+dist
+coverage
+workers
+docs
+prompts
+skills
+.cursor
+*.md
+# Owner-supplied v1 contracts are kept byte-identical
+contracts/lead.schema.json
+contracts/org-map.schema.json
