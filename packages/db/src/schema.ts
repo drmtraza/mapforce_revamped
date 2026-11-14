@@ -655,6 +655,73 @@ export interface AccountPlansTable {
   updated_at: GeneratedTimestamp;
 }
 
+export interface TendersTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string | null;
+  external_ref: string;
+  title: string;
+  summary: string;
+  buyer_name: string;
+  country_code: string | null;
+  category:
+    'cybersecurity' | 'cloud' | 'software' | 'professional_services' | 'infrastructure' | 'other';
+  status: Generated<'open' | 'closed' | 'awarded' | 'cancelled' | 'watching'>;
+  published_at: Timestamp | null;
+  closes_at: Timestamp | null;
+  source_key: string;
+  source_url: string;
+  claim_type: Generated<ClaimType>;
+  evidence_ids: Json;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface TenderBidAssessmentsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  tender_id: string;
+  recommendation: 'bid' | 'no_bid' | 'review';
+  fit_score: number;
+  factors: Json;
+  missing_information: Json;
+  note: string;
+  human_decision: 'bid' | 'no_bid' | 'defer' | null;
+  decided_by: string | null;
+  decided_at: Timestamp | null;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface CompetitorsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  name: string;
+  domain: string | null;
+  notes: string | null;
+  status: Generated<'watching' | 'archived'>;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface CompetitorBattlecardsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  competitor_id: string;
+  version: Generated<number>;
+  strengths: string;
+  weaknesses: string;
+  landmines: Generated<string>;
+  our_differentiators: string;
+  certifications_note: Generated<string>;
+  evidence_ids: Json;
+  claim_type: Generated<ClaimType>;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
 export interface WorkspaceListsTable {
   id: Generated<string>;
   tenant_id: string;
@@ -1010,4 +1077,8 @@ export interface Database {
   account_intelligence_reports: AccountIntelligenceReportsTable;
   buying_committee_members: BuyingCommitteeMembersTable;
   account_plans: AccountPlansTable;
+  tenders: TendersTable;
+  tender_bid_assessments: TenderBidAssessmentsTable;
+  competitors: CompetitorsTable;
+  competitor_battlecards: CompetitorBattlecardsTable;
 }

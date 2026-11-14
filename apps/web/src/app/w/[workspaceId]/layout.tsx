@@ -11,6 +11,8 @@ const NAV = [
   { href: 'lists', label: 'Lists' },
   { href: 'catalogue', label: 'Product catalogue' },
   { href: 'radar', label: 'Opportunity radar' },
+  { href: 'tenders', label: 'Tenders' },
+  { href: 'competitors', label: 'Competitors' },
   { href: 'discovery', label: 'Discovery' },
   { href: 'imports', label: 'Imports' },
   { href: 'icp', label: 'Ideal customer profiles' },

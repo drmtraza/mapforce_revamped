@@ -193,7 +193,8 @@ Cross-cutting from Phase 1: tenant context propagation, correlation IDs, error c
 | 13 | `phase-13/opportunity-radar` | Opportunity radar feed + mission MVP (decay/dedupe/budget) | claim labels; Temporal Schedule deferred |
 | 14 | `phase-14/ai-account-research` | AI gateway + account intelligence draft reports | quarantine; review-before-CRM |
 | 15 | `phase-15/buying-committee` | Buying committee + versioned account plans | coverage; budget_owner needs evidence |
-| 16–22 | (see `PHASE_11_REPORT.md`) | Tenders → … → hardening | Per phase reports; additive only |
+| 16 | `phase-16/tenders-competitors` | Tenders + competitors/battlecards | no auto-submit; no fabricated certs |
+| 17–22 | (see `PHASE_11_REPORT.md`) | Proposals → … → hardening | Per phase reports; additive only |
 
 Each phase is delivered as small commits on its branch; each branch is pushed and a PR opened against `main`. A phase branch is created from `main` after the previous phase PR is merged.
 

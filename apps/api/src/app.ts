@@ -50,6 +50,7 @@ import { catalogueRoutes } from './modules/catalogue/routes.ts';
 import { radarRoutes } from './modules/radar/routes.ts';
 import { agentRoutes } from './modules/agents/routes.ts';
 import { committeeRoutes } from './modules/committee/routes.ts';
+import { tenderRoutes } from './modules/tenders/routes.ts';
 import { WORKSPACE_HEADER } from './http/context.ts';
 
 export interface AppDeps {
@@ -240,6 +241,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(radarRoutes(deps));
       await v1.register(agentRoutes(deps));
       await v1.register(committeeRoutes(deps));
+      await v1.register(tenderRoutes(deps));
     },
     { prefix: '/api/v1' },
   );

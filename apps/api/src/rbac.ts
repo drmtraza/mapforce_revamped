@@ -47,7 +47,13 @@ export type Permission =
   | 'committee.read'
   | 'committee.write'
   | 'plan.read'
-  | 'plan.write';
+  | 'plan.write'
+  | 'tender.read'
+  | 'tender.write'
+  | 'tender.assess'
+  | 'tender.decide'
+  | 'competitor.read'
+  | 'competitor.write';
 
 const ALL: MembershipRole[] = [
   'owner',
@@ -106,6 +112,12 @@ const MATRIX: Record<Permission, readonly MembershipRole[]> = {
   'committee.write': ['owner', 'admin', 'manager', 'researcher'],
   'plan.read': ALL,
   'plan.write': ['owner', 'admin', 'manager'],
+  'tender.read': ALL,
+  'tender.write': ['owner', 'admin', 'manager', 'researcher'],
+  'tender.assess': ['owner', 'admin', 'manager', 'researcher'],
+  'tender.decide': ['owner', 'admin', 'manager'],
+  'competitor.read': ALL,
+  'competitor.write': ['owner', 'admin', 'manager', 'researcher'],
 };
 
 export function can(role: MembershipRole, permission: Permission): boolean {

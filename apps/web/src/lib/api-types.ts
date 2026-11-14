@@ -5779,6 +5779,413 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/tenders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "closed" | "awarded" | "cancelled" | "watching";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                company_id: string | null;
+                                external_ref: string;
+                                title: string;
+                                summary: string;
+                                buyer_name: string;
+                                country_code: string | null;
+                                /** @enum {string} */
+                                category: "cybersecurity" | "cloud" | "software" | "professional_services" | "infrastructure" | "other";
+                                /** @enum {string} */
+                                status: "open" | "closed" | "awarded" | "cancelled" | "watching";
+                                published_at: string | null;
+                                closes_at: string | null;
+                                source_key: string;
+                                source_url: string;
+                                claim_type: string;
+                                created_at: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tenders/sync-mock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            upserted: number;
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tenders/{id}/bid-assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            tender_id: string;
+                            /** @enum {string} */
+                            recommendation: "bid" | "no_bid" | "review";
+                            fit_score: number;
+                            factors: {
+                                key: string;
+                                value: number;
+                                max: number;
+                                rationale: string;
+                            }[];
+                            missing_information: string[];
+                            note: string;
+                            human_decision: ("bid" | "no_bid" | "defer") | null;
+                            decided_at: string | null;
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tender-bid-assessments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        human_decision: "bid" | "no_bid" | "defer";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            tender_id: string;
+                            /** @enum {string} */
+                            recommendation: "bid" | "no_bid" | "review";
+                            fit_score: number;
+                            factors: {
+                                key: string;
+                                value: number;
+                                max: number;
+                                rationale: string;
+                            }[];
+                            missing_information: string[];
+                            note: string;
+                            human_decision: ("bid" | "no_bid" | "defer") | null;
+                            decided_at: string | null;
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/competitors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                domain: string | null;
+                                notes: string | null;
+                                /** @enum {string} */
+                                status: "watching" | "archived";
+                                created_at: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        domain?: string | null;
+                        notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            domain: string | null;
+                            notes: string | null;
+                            /** @enum {string} */
+                            status: "watching" | "archived";
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/competitors/{id}/battlecards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                competitor_id: string;
+                                version: number;
+                                strengths: string;
+                                weaknesses: string;
+                                landmines: string;
+                                our_differentiators: string;
+                                certifications_note: string;
+                                evidence_ids: string[];
+                                claim_type: string;
+                                created_at: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        strengths: string;
+                        weaknesses: string;
+                        /** @default  */
+                        landmines?: string;
+                        our_differentiators: string;
+                        /** @default No certifications asserted without evidence. */
+                        certifications_note?: string;
+                        /** @default [] */
+                        evidence_ids?: string[];
+                        /**
+                         * @default user_assertion
+                         * @enum {string}
+                         */
+                        claim_type?: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            competitor_id: string;
+                            version: number;
+                            strengths: string;
+                            weaknesses: string;
+                            landmines: string;
+                            our_differentiators: string;
+                            certifications_note: string;
+                            evidence_ids: string[];
+                            claim_type: string;
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

@@ -110,6 +110,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - Versioned account plans with manager assign; no invented reporting lines.
 - Contabo deploy, D12, Hermes live, Stripe remain out of scope.
 
+## Phase 16 — Tenders + competitors
+- Tender entities with mock sync; bid/no-bid assist; human decision required.
+- Competitor watchlists and versioned battlecards with provenance rules.
+- No auto-submit; no fabricated certifications.
+- Contabo deploy, D12, Hermes live, Stripe remain out of scope.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.
