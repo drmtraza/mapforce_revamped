@@ -4367,6 +4367,408 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/product-offerings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: "draft" | "active" | "archived";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                name: string;
+                                /** @enum {string} */
+                                category: "product" | "software" | "saas" | "cloud" | "cybersecurity" | "ai_automation" | "professional_services" | "consulting" | "training" | "distribution" | "custom_enterprise" | "other";
+                                description: string;
+                                business_problem: string;
+                                target_industries: string[];
+                                target_countries: string[];
+                                employee_bands: string[];
+                                target_personas: string[];
+                                /** @enum {string} */
+                                pricing_model: "unspecified" | "subscription" | "one_time" | "usage" | "fixed_fee" | "time_materials" | "reseller";
+                                price_range_note: string | null;
+                                requirements_note: string | null;
+                                /** @enum {string} */
+                                status: "draft" | "active" | "archived";
+                                version: number;
+                                created_at: string;
+                                updated_at: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        category: "product" | "software" | "saas" | "cloud" | "cybersecurity" | "ai_automation" | "professional_services" | "consulting" | "training" | "distribution" | "custom_enterprise" | "other";
+                        description: string;
+                        business_problem: string;
+                        /** @default [] */
+                        target_industries?: string[];
+                        /** @default [] */
+                        target_countries?: string[];
+                        /** @default [] */
+                        employee_bands?: string[];
+                        /** @default [] */
+                        target_personas?: string[];
+                        /**
+                         * @default unspecified
+                         * @enum {string}
+                         */
+                        pricing_model?: "unspecified" | "subscription" | "one_time" | "usage" | "fixed_fee" | "time_materials" | "reseller";
+                        price_range_note?: string | null;
+                        requirements_note?: string | null;
+                        /**
+                         * @default active
+                         * @enum {string}
+                         */
+                        status?: "draft" | "active" | "archived";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            category: "product" | "software" | "saas" | "cloud" | "cybersecurity" | "ai_automation" | "professional_services" | "consulting" | "training" | "distribution" | "custom_enterprise" | "other";
+                            description: string;
+                            business_problem: string;
+                            target_industries: string[];
+                            target_countries: string[];
+                            employee_bands: string[];
+                            target_personas: string[];
+                            /** @enum {string} */
+                            pricing_model: "unspecified" | "subscription" | "one_time" | "usage" | "fixed_fee" | "time_materials" | "reseller";
+                            price_range_note: string | null;
+                            requirements_note: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "archived";
+                            version: number;
+                            created_at: string;
+                            updated_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/product-offerings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        description?: string;
+                        business_problem?: string;
+                        target_industries?: string[];
+                        target_countries?: string[];
+                        employee_bands?: string[];
+                        target_personas?: string[];
+                        /** @enum {string} */
+                        pricing_model?: "unspecified" | "subscription" | "one_time" | "usage" | "fixed_fee" | "time_materials" | "reseller";
+                        price_range_note?: string | null;
+                        requirements_note?: string | null;
+                        /** @enum {string} */
+                        status?: "draft" | "active" | "archived";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            category: "product" | "software" | "saas" | "cloud" | "cybersecurity" | "ai_automation" | "professional_services" | "consulting" | "training" | "distribution" | "custom_enterprise" | "other";
+                            description: string;
+                            business_problem: string;
+                            target_industries: string[];
+                            target_countries: string[];
+                            employee_bands: string[];
+                            target_personas: string[];
+                            /** @enum {string} */
+                            pricing_model: "unspecified" | "subscription" | "one_time" | "usage" | "fixed_fee" | "time_materials" | "reseller";
+                            price_range_note: string | null;
+                            requirements_note: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "archived";
+                            version: number;
+                            created_at: string;
+                            updated_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/product-offerings/{id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                id: string;
+                                offering_id: string;
+                                title: string;
+                                /** @enum {string} */
+                                doc_kind: "brochure" | "case_study" | "spec" | "pricing" | "certification" | "other";
+                                source_uri: string;
+                                notes: string | null;
+                                created_at: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        /** @enum {string} */
+                        doc_kind: "brochure" | "case_study" | "spec" | "pricing" | "certification" | "other";
+                        source_uri: string;
+                        notes?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            offering_id: string;
+                            title: string;
+                            /** @enum {string} */
+                            doc_kind: "brochure" | "case_study" | "spec" | "pricing" | "certification" | "other";
+                            source_uri: string;
+                            notes: string | null;
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/opportunity-matches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            run_id: string | null;
+                            matching_version: string | null;
+                            account_score_note: string;
+                            data: {
+                                id: string;
+                                offering_id: string;
+                                offering_name: string;
+                                offering_category: string;
+                                match_score: number;
+                                commercial_potential: number;
+                                /** @enum {string} */
+                                confidence: "low" | "medium" | "high";
+                                eligible: boolean;
+                                suppression_override: boolean;
+                                factors: {
+                                    key: string;
+                                    value: number;
+                                    max: number;
+                                    rationale: string;
+                                }[];
+                                missing_information: string[];
+                                recommended_approach: string;
+                                recommended_next_action: string;
+                                note: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            run_id: string;
+                            matching_version: string;
+                            account_score_note: string;
+                            data: {
+                                id: string;
+                                offering_id: string;
+                                offering_name: string;
+                                offering_category: string;
+                                match_score: number;
+                                commercial_potential: number;
+                                /** @enum {string} */
+                                confidence: "low" | "medium" | "high";
+                                eligible: boolean;
+                                suppression_override: boolean;
+                                factors: {
+                                    key: string;
+                                    value: number;
+                                    max: number;
+                                    rationale: string;
+                                }[];
+                                missing_information: string[];
+                                recommended_approach: string;
+                                recommended_next_action: string;
+                                note: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

@@ -8824,6 +8824,1198 @@
           }
         }
       }
+    },
+    "/api/v1/product-offerings": {
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "draft",
+                "active",
+                "archived"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string",
+                            "enum": [
+                              "product",
+                              "software",
+                              "saas",
+                              "cloud",
+                              "cybersecurity",
+                              "ai_automation",
+                              "professional_services",
+                              "consulting",
+                              "training",
+                              "distribution",
+                              "custom_enterprise",
+                              "other"
+                            ]
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "business_problem": {
+                            "type": "string"
+                          },
+                          "target_industries": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "target_countries": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "employee_bands": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "target_personas": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "pricing_model": {
+                            "type": "string",
+                            "enum": [
+                              "unspecified",
+                              "subscription",
+                              "one_time",
+                              "usage",
+                              "fixed_fee",
+                              "time_materials",
+                              "reseller"
+                            ]
+                          },
+                          "price_range_note": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "requirements_note": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft",
+                              "active",
+                              "archived"
+                            ]
+                          },
+                          "version": {
+                            "type": "number"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "category",
+                          "description",
+                          "business_problem",
+                          "target_industries",
+                          "target_countries",
+                          "employee_bands",
+                          "target_personas",
+                          "pricing_model",
+                          "price_range_note",
+                          "requirements_note",
+                          "status",
+                          "version",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "catalogue"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "category": {
+                    "type": "string",
+                    "enum": [
+                      "product",
+                      "software",
+                      "saas",
+                      "cloud",
+                      "cybersecurity",
+                      "ai_automation",
+                      "professional_services",
+                      "consulting",
+                      "training",
+                      "distribution",
+                      "custom_enterprise",
+                      "other"
+                    ]
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "business_problem": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "target_industries": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "target_countries": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "employee_bands": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "target_personas": {
+                    "default": [],
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "pricing_model": {
+                    "default": "unspecified",
+                    "type": "string",
+                    "enum": [
+                      "unspecified",
+                      "subscription",
+                      "one_time",
+                      "usage",
+                      "fixed_fee",
+                      "time_materials",
+                      "reseller"
+                    ]
+                  },
+                  "price_range_note": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "requirements_note": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "status": {
+                    "default": "active",
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "active",
+                      "archived"
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "category",
+                  "description",
+                  "business_problem"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string",
+                      "enum": [
+                        "product",
+                        "software",
+                        "saas",
+                        "cloud",
+                        "cybersecurity",
+                        "ai_automation",
+                        "professional_services",
+                        "consulting",
+                        "training",
+                        "distribution",
+                        "custom_enterprise",
+                        "other"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "business_problem": {
+                      "type": "string"
+                    },
+                    "target_industries": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "target_countries": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "employee_bands": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "target_personas": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "pricing_model": {
+                      "type": "string",
+                      "enum": [
+                        "unspecified",
+                        "subscription",
+                        "one_time",
+                        "usage",
+                        "fixed_fee",
+                        "time_materials",
+                        "reseller"
+                      ]
+                    },
+                    "price_range_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requirements_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "active",
+                        "archived"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "category",
+                    "description",
+                    "business_problem",
+                    "target_industries",
+                    "target_countries",
+                    "employee_bands",
+                    "target_personas",
+                    "pricing_model",
+                    "price_range_note",
+                    "requirements_note",
+                    "status",
+                    "version",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/product-offerings/{id}": {
+      "patch": {
+        "tags": [
+          "catalogue"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 4000
+                  },
+                  "business_problem": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "target_industries": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "target_countries": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "employee_bands": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "target_personas": {
+                    "maxItems": 50,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 80
+                    }
+                  },
+                  "pricing_model": {
+                    "type": "string",
+                    "enum": [
+                      "unspecified",
+                      "subscription",
+                      "one_time",
+                      "usage",
+                      "fixed_fee",
+                      "time_materials",
+                      "reseller"
+                    ]
+                  },
+                  "price_range_note": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "requirements_note": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "draft",
+                      "active",
+                      "archived"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string",
+                      "enum": [
+                        "product",
+                        "software",
+                        "saas",
+                        "cloud",
+                        "cybersecurity",
+                        "ai_automation",
+                        "professional_services",
+                        "consulting",
+                        "training",
+                        "distribution",
+                        "custom_enterprise",
+                        "other"
+                      ]
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "business_problem": {
+                      "type": "string"
+                    },
+                    "target_industries": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "target_countries": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "employee_bands": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "target_personas": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "pricing_model": {
+                      "type": "string",
+                      "enum": [
+                        "unspecified",
+                        "subscription",
+                        "one_time",
+                        "usage",
+                        "fixed_fee",
+                        "time_materials",
+                        "reseller"
+                      ]
+                    },
+                    "price_range_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "requirements_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft",
+                        "active",
+                        "archived"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "updated_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "category",
+                    "description",
+                    "business_problem",
+                    "target_industries",
+                    "target_countries",
+                    "employee_bands",
+                    "target_personas",
+                    "pricing_model",
+                    "price_range_note",
+                    "requirements_note",
+                    "status",
+                    "version",
+                    "created_at",
+                    "updated_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/product-offerings/{id}/documents": {
+      "post": {
+        "tags": [
+          "catalogue"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "doc_kind": {
+                    "type": "string",
+                    "enum": [
+                      "brochure",
+                      "case_study",
+                      "spec",
+                      "pricing",
+                      "certification",
+                      "other"
+                    ]
+                  },
+                  "source_uri": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "notes": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 2000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "title",
+                  "doc_kind",
+                  "source_uri"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "offering_id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "doc_kind": {
+                      "type": "string",
+                      "enum": [
+                        "brochure",
+                        "case_study",
+                        "spec",
+                        "pricing",
+                        "certification",
+                        "other"
+                      ]
+                    },
+                    "source_uri": {
+                      "type": "string"
+                    },
+                    "notes": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "offering_id",
+                    "title",
+                    "doc_kind",
+                    "source_uri",
+                    "notes",
+                    "created_at"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "offering_id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "doc_kind": {
+                            "type": "string",
+                            "enum": [
+                              "brochure",
+                              "case_study",
+                              "spec",
+                              "pricing",
+                              "certification",
+                              "other"
+                            ]
+                          },
+                          "source_uri": {
+                            "type": "string"
+                          },
+                          "notes": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "offering_id",
+                          "title",
+                          "doc_kind",
+                          "source_uri",
+                          "notes",
+                          "created_at"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/companies/{id}/opportunity-matches": {
+      "post": {
+        "tags": [
+          "catalogue"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "run_id": {
+                      "type": "string"
+                    },
+                    "matching_version": {
+                      "type": "string"
+                    },
+                    "account_score_note": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "offering_id": {
+                            "type": "string"
+                          },
+                          "offering_name": {
+                            "type": "string"
+                          },
+                          "offering_category": {
+                            "type": "string"
+                          },
+                          "match_score": {
+                            "type": "number"
+                          },
+                          "commercial_potential": {
+                            "type": "number"
+                          },
+                          "confidence": {
+                            "type": "string",
+                            "enum": [
+                              "low",
+                              "medium",
+                              "high"
+                            ]
+                          },
+                          "eligible": {
+                            "type": "boolean"
+                          },
+                          "suppression_override": {
+                            "type": "boolean"
+                          },
+                          "factors": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "number"
+                                },
+                                "max": {
+                                  "type": "number"
+                                },
+                                "rationale": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "value",
+                                "max",
+                                "rationale"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "missing_information": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "recommended_approach": {
+                            "type": "string"
+                          },
+                          "recommended_next_action": {
+                            "type": "string"
+                          },
+                          "note": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "offering_id",
+                          "offering_name",
+                          "offering_category",
+                          "match_score",
+                          "commercial_potential",
+                          "confidence",
+                          "eligible",
+                          "suppression_override",
+                          "factors",
+                          "missing_information",
+                          "recommended_approach",
+                          "recommended_next_action",
+                          "note"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "run_id",
+                    "matching_version",
+                    "account_score_note",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "catalogue"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "run_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "matching_version": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "account_score_note": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "offering_id": {
+                            "type": "string"
+                          },
+                          "offering_name": {
+                            "type": "string"
+                          },
+                          "offering_category": {
+                            "type": "string"
+                          },
+                          "match_score": {
+                            "type": "number"
+                          },
+                          "commercial_potential": {
+                            "type": "number"
+                          },
+                          "confidence": {
+                            "type": "string",
+                            "enum": [
+                              "low",
+                              "medium",
+                              "high"
+                            ]
+                          },
+                          "eligible": {
+                            "type": "boolean"
+                          },
+                          "suppression_override": {
+                            "type": "boolean"
+                          },
+                          "factors": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "type": "number"
+                                },
+                                "max": {
+                                  "type": "number"
+                                },
+                                "rationale": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "value",
+                                "max",
+                                "rationale"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "missing_information": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "recommended_approach": {
+                            "type": "string"
+                          },
+                          "recommended_next_action": {
+                            "type": "string"
+                          },
+                          "note": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "offering_id",
+                          "offering_name",
+                          "offering_category",
+                          "match_score",
+                          "commercial_potential",
+                          "confidence",
+                          "eligible",
+                          "suppression_override",
+                          "factors",
+                          "missing_information",
+                          "recommended_approach",
+                          "recommended_next_action",
+                          "note"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "run_id",
+                    "matching_version",
+                    "account_score_note",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

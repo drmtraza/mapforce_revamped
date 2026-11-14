@@ -84,7 +84,13 @@ Exit criteria: published test report documents supported workload and remaining 
 - Inspect baseline (`phase-10/release-smoke`); map stack, modules, flags, tests.
 - Produce preservation matrix, architecture extension plan, dependency assessment.
 - Define Phases 12–22 backlog for catalogue → matching → radar → agents → revenue.
-- **No product code changes.** Owner approval required before Phase 12.
+- **No product code changes.** Owner approval required before Phase 12. **Approved 2026-11-15.**
+
+## Phase 12 — Product catalogue + opportunity matching
+- Tenant catalogue (`product_offerings` / documents) with RBAC and feature flags.
+- Company→offering match engine `product-match/1.0.0` (distinct from ICP `icp-explainable/1.0.0`).
+- Web catalogue page + company MatchPanel; OpenAPI + unit/integration tests.
+- Contabo deploy, D12, Hermes, Stripe remain out of scope.
 
 ## Definition of done for every phase
 - Acceptance criteria met.

@@ -34,7 +34,10 @@ export type Permission =
   | 'usage.read'
   | 'budget.manage'
   | 'ops.read'
-  | 'ops.manage';
+  | 'ops.manage'
+  | 'catalogue.read'
+  | 'catalogue.write'
+  | 'match.run';
 
 const ALL: MembershipRole[] = [
   'owner',
@@ -80,6 +83,9 @@ const MATRIX: Record<Permission, readonly MembershipRole[]> = {
   'budget.manage': ['owner', 'admin'],
   'ops.read': ['owner', 'admin', 'manager', 'auditor'],
   'ops.manage': ['owner', 'admin'],
+  'catalogue.read': ALL,
+  'catalogue.write': ['owner', 'admin', 'manager'],
+  'match.run': ['owner', 'admin', 'manager', 'researcher'],
 };
 
 export function can(role: MembershipRole, permission: Permission): boolean {

@@ -728,6 +728,91 @@ export interface WorkspaceControlsTable {
   updated_at: GeneratedTimestamp;
 }
 
+export type ProductCategory =
+  | 'product'
+  | 'software'
+  | 'saas'
+  | 'cloud'
+  | 'cybersecurity'
+  | 'ai_automation'
+  | 'professional_services'
+  | 'consulting'
+  | 'training'
+  | 'distribution'
+  | 'custom_enterprise'
+  | 'other';
+
+export type ProductPricingModel =
+  | 'unspecified'
+  | 'subscription'
+  | 'one_time'
+  | 'usage'
+  | 'fixed_fee'
+  | 'time_materials'
+  | 'reseller';
+
+export interface ProductOfferingsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  name: string;
+  category: ProductCategory;
+  description: string;
+  business_problem: string;
+  target_industries: Json;
+  target_countries: Json;
+  employee_bands: Json;
+  target_personas: Json;
+  pricing_model: Generated<ProductPricingModel>;
+  price_range_note: string | null;
+  requirements_note: string | null;
+  status: Generated<'draft' | 'active' | 'archived'>;
+  version: Generated<number>;
+  created_by: string;
+  updated_by: string | null;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface ProductDocumentsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  offering_id: string;
+  title: string;
+  doc_kind: 'brochure' | 'case_study' | 'spec' | 'pricing' | 'certification' | 'other';
+  source_uri: string;
+  notes: string | null;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface OpportunityMatchRunsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  matching_version: Generated<string>;
+  created_by: string;
+  created_at: GeneratedTimestamp;
+}
+
+export interface OpportunityMatchResultsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  run_id: string;
+  company_id: string;
+  offering_id: string;
+  match_score: number;
+  commercial_potential: number;
+  confidence: 'low' | 'medium' | 'high';
+  eligible: boolean;
+  suppression_override: Generated<boolean>;
+  factors: Json;
+  missing_information: Json;
+  recommended_approach: string;
+  recommended_next_action: string;
+  note: string;
+  created_at: GeneratedTimestamp;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -782,4 +867,8 @@ export interface Database {
   synthetic_check_runs: SyntheticCheckRunsTable;
   quota_ramp_events: QuotaRampEventsTable;
   incident_triage_notes: IncidentTriageNotesTable;
+  product_offerings: ProductOfferingsTable;
+  product_documents: ProductDocumentsTable;
+  opportunity_match_runs: OpportunityMatchRunsTable;
+  opportunity_match_results: OpportunityMatchResultsTable;
 }

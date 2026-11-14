@@ -22,6 +22,9 @@ const ROLES = {
   manageBudget: ['owner', 'admin'],
   readOps: ['owner', 'admin', 'manager', 'auditor'],
   manageOps: ['owner', 'admin'],
+  readCatalogue: ['owner', 'admin', 'manager', 'researcher', 'representative', 'auditor'],
+  writeCatalogue: ['owner', 'admin', 'manager'],
+  runMatch: ['owner', 'admin', 'manager', 'researcher'],
 } as const satisfies Record<string, readonly WorkspaceRole[]>;
 
 export function allowed(role: WorkspaceRole | null, action: keyof typeof ROLES): boolean {
