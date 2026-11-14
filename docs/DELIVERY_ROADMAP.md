@@ -80,6 +80,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - Publish immutable images to GHCR on `main` / version tags (not a cloud deploy).
 - D12 and D13 vendor choice remain owner decisions.
 
+## Phase 11 — Baseline audit and extension design (Agentic BD OS)
+- Inspect baseline (`phase-10/release-smoke`); map stack, modules, flags, tests.
+- Produce preservation matrix, architecture extension plan, dependency assessment.
+- Define Phases 12–22 backlog for catalogue → matching → radar → agents → revenue.
+- **No product code changes.** Owner approval required before Phase 12.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.
