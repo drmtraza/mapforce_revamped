@@ -190,7 +190,8 @@ Cross-cutting from Phase 1: tenant context propagation, correlation IDs, error c
 | 10 | `phase-10/release-smoke` | CI packaging smoke + GHCR image publish | Smoke contract green in CI; images pushable without D13 |
 | 11 | `phase-11/baseline-audit` | Agentic BD OS extension design (docs only) | Owner approves preservation matrix + Phase 12 scope |
 | 12 | `phase-12/catalogue-matching` | Product catalogue + company→offering match (`product-match/1.0.0`) | Flags on; match ≠ ICP; tests + OpenAPI |
-| 13–22 | (see `PHASE_11_REPORT.md`) | Radar → agents → … → hardening | Per phase reports; additive only |
+| 13 | `phase-13/opportunity-radar` | Opportunity radar feed + mission MVP (decay/dedupe/budget) | claim labels; Temporal Schedule deferred |
+| 14–22 | (see `PHASE_11_REPORT.md`) | Agents → … → hardening | Per phase reports; additive only |
 
 Each phase is delivered as small commits on its branch; each branch is pushed and a PR opened against `main`. A phase branch is created from `main` after the previous phase PR is merged.
 
@@ -327,4 +328,4 @@ Phases 2–7: acceptance criteria are the roadmap exit criteria (§6) plus PRD �
 
 Owner reviews §3 and §4. On approval of D1–D8 and D11, implementation of Phase 1 begins on `phase-1/foundation-vertical-slice` in small commits, each followed by format/lint/typecheck/test runs with results reported verbatim.
 
-**Status:** Phases 1–12 implemented (see respective `PHASE_*_REPORT.md`). Phase 11 approved; Phase 12 catalogue + matching on `phase-12/catalogue-matching`. D12 remains open. D13 ADR still awaiting owner vendor choice. Later Agentic BD OS phases (13+) are planned only. GA packaging is not a readiness claim.
+**Status:** Phases 1–13 implemented (see respective `PHASE_*_REPORT.md`). Phase 13 radar + missions on `phase-13/opportunity-radar`. D12 remains open. D13 ADR still awaiting owner vendor choice. Later Agentic BD OS phases (14+) are planned only. GA packaging is not a readiness claim.

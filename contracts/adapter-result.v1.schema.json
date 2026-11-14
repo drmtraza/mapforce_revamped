@@ -245,7 +245,18 @@
           "ref": { "$ref": "#/$defs/ref" },
           "signal_type": {
             "type": "string",
-            "enum": ["hiring", "funding", "procurement", "news", "product", "other"]
+            "enum": [
+              "hiring",
+              "funding",
+              "procurement",
+              "news",
+              "product",
+              "other",
+              "tender",
+              "leadership_change",
+              "expansion",
+              "partnership"
+            ]
           },
           "title": { "type": "string", "minLength": 1, "maxLength": 300 },
           "summary": { "type": "string", "minLength": 1, "maxLength": 2000 },

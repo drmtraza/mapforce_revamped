@@ -1,5 +1,9 @@
 # Contract changelog
 
+## 2026-11-15 (Phase 13)
+- **`openapi.v1.json` — additive, non-breaking.** Opportunity radar feed + radar missions (pause/resume/budget/run-now). See `docs/PHASE_13_REPORT.md`.
+- **`adapter-result.v1.schema.json` — additive.** `signal_type` enum adds `tender`, `leadership_change`, `expansion`, `partnership`.
+
 ## 2026-11-15 (Phase 12)
 - **`openapi.v1.json` — additive, non-breaking.**
   - Product catalogue: `GET/POST /api/v1/product-offerings`, `PATCH /api/v1/product-offerings/{id}`, `GET/POST …/documents`.

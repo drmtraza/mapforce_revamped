@@ -10,6 +10,7 @@ const NAV = [
   { href: 'pipeline', label: 'Pipeline' },
   { href: 'lists', label: 'Lists' },
   { href: 'catalogue', label: 'Product catalogue' },
+  { href: 'radar', label: 'Opportunity radar' },
   { href: 'discovery', label: 'Discovery' },
   { href: 'imports', label: 'Imports' },
   { href: 'icp', label: 'Ideal customer profiles' },

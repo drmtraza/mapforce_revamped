@@ -148,7 +148,17 @@ export type ContactStatus =
   | 'suppressed';
 export type VerificationMethod = 'none' | 'pattern' | 'mx' | 'provider' | 'user';
 export type MatchStatus = 'proposed' | 'accepted' | 'rejected';
-export type SignalType = 'hiring' | 'funding' | 'procurement' | 'news' | 'product' | 'other';
+export type SignalType =
+  | 'hiring'
+  | 'funding'
+  | 'procurement'
+  | 'news'
+  | 'product'
+  | 'other'
+  | 'tender'
+  | 'leadership_change'
+  | 'expansion'
+  | 'partnership';
 export type SuppressionSubject = 'email' | 'phone' | 'domain' | 'person';
 
 export interface DiscoveryCandidatesTable {
@@ -813,6 +823,55 @@ export interface OpportunityMatchResultsTable {
   created_at: GeneratedTimestamp;
 }
 
+export interface MarketOpportunitiesTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  opportunity_kind: 'signal' | 'product_match' | 'announcement';
+  title: string;
+  summary: string;
+  claim_type: ClaimType;
+  confidence: Numeric;
+  freshness_score: number;
+  observed_at: Timestamp;
+  fingerprint: string;
+  source_signal_id: string | null;
+  source_match_result_id: string | null;
+  status: Generated<'open' | 'dismissed' | 'snoozed'>;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface RadarMissionsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  name: string;
+  status: Generated<'active' | 'paused'>;
+  interval_hours: Generated<number>;
+  daily_run_budget: Generated<number>;
+  runs_today: Generated<number>;
+  runs_today_on: Generated<string>;
+  last_run_at: Timestamp | null;
+  next_run_at: Timestamp | null;
+  target_countries: Json;
+  target_industries: Json;
+  temporal_schedule_id: string | null;
+  created_by: string;
+  updated_by: string | null;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface RadarMissionRunsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  mission_id: string;
+  status: 'succeeded' | 'skipped_budget' | 'skipped_paused' | 'failed';
+  opportunities_upserted: Generated<number>;
+  detail: Json;
+  created_at: GeneratedTimestamp;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -871,4 +930,7 @@ export interface Database {
   product_documents: ProductDocumentsTable;
   opportunity_match_runs: OpportunityMatchRunsTable;
   opportunity_match_results: OpportunityMatchResultsTable;
+  market_opportunities: MarketOpportunitiesTable;
+  radar_missions: RadarMissionsTable;
+  radar_mission_runs: RadarMissionRunsTable;
 }

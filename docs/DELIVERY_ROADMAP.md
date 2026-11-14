@@ -92,6 +92,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - Web catalogue page + company MatchPanel; OpenAPI + unit/integration tests.
 - Contabo deploy, D12, Hermes, Stripe remain out of scope.
 
+## Phase 13 — Market Opportunity Radar + mission MVP
+- Feed from signals + eligible product matches with freshness decay and fingerprint dedupe.
+- Missions with pause/resume and daily run budget; run-now sync refresh (Temporal Schedule later).
+- Web Opportunity radar page; claim labels verified vs inference.
+- Contabo deploy, D12, Hermes, Stripe remain out of scope.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.

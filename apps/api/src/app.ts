@@ -47,6 +47,7 @@ import { observeRequest, prometheusText } from './modules/ops/metrics.ts';
 import { opsRoutes } from './modules/ops/routes.ts';
 import { rolloutRoutes } from './modules/rollout/routes.ts';
 import { catalogueRoutes } from './modules/catalogue/routes.ts';
+import { radarRoutes } from './modules/radar/routes.ts';
 import { WORKSPACE_HEADER } from './http/context.ts';
 
 export interface AppDeps {
@@ -234,6 +235,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       await v1.register(opsRoutes(deps));
       await v1.register(rolloutRoutes(deps));
       await v1.register(catalogueRoutes(deps));
+      await v1.register(radarRoutes(deps));
     },
     { prefix: '/api/v1' },
   );

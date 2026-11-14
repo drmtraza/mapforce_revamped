@@ -4769,6 +4769,395 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/opportunity-radar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "dismissed" | "snoozed";
+                    min_freshness?: number;
+                    limit?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                company_id: string;
+                                company_domain: string | null;
+                                company_name: string | null;
+                                /** @enum {string} */
+                                opportunity_kind: "signal" | "product_match" | "announcement";
+                                title: string;
+                                summary: string;
+                                /** @enum {string} */
+                                claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                claim_label: string;
+                                confidence: number;
+                                freshness_score: number;
+                                observed_at: string;
+                                /** @enum {string} */
+                                status: "open" | "dismissed" | "snoozed";
+                                note: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/opportunity-radar/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            from_signals: number;
+                            from_matches: number;
+                            upserted: number;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/opportunity-radar/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "open" | "dismissed" | "snoozed";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            company_id: string;
+                            company_domain: string | null;
+                            company_name: string | null;
+                            /** @enum {string} */
+                            opportunity_kind: "signal" | "product_match" | "announcement";
+                            title: string;
+                            summary: string;
+                            /** @enum {string} */
+                            claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                            claim_label: string;
+                            confidence: number;
+                            freshness_score: number;
+                            observed_at: string;
+                            /** @enum {string} */
+                            status: "open" | "dismissed" | "snoozed";
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/radar-missions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** @enum {string} */
+                                status: "active" | "paused";
+                                interval_hours: number;
+                                daily_run_budget: number;
+                                runs_today: number;
+                                last_run_at: string | null;
+                                next_run_at: string | null;
+                                target_countries: string[];
+                                target_industries: string[];
+                                temporal_schedule_id: string | null;
+                                created_at: string;
+                                updated_at: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @default 24 */
+                        interval_hours?: number;
+                        /** @default 4 */
+                        daily_run_budget?: number;
+                        /** @default [] */
+                        target_countries?: string[];
+                        /** @default [] */
+                        target_industries?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "active" | "paused";
+                            interval_hours: number;
+                            daily_run_budget: number;
+                            runs_today: number;
+                            last_run_at: string | null;
+                            next_run_at: string | null;
+                            target_countries: string[];
+                            target_industries: string[];
+                            temporal_schedule_id: string | null;
+                            created_at: string;
+                            updated_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/radar-missions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status?: "active" | "paused";
+                        interval_hours?: number;
+                        daily_run_budget?: number;
+                        name?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "active" | "paused";
+                            interval_hours: number;
+                            daily_run_budget: number;
+                            runs_today: number;
+                            last_run_at: string | null;
+                            next_run_at: string | null;
+                            target_countries: string[];
+                            target_industries: string[];
+                            temporal_schedule_id: string | null;
+                            created_at: string;
+                            updated_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/radar-missions/{id}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "succeeded" | "skipped_budget" | "skipped_paused";
+                            opportunities_upserted: number;
+                            mission: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** @enum {string} */
+                                status: "active" | "paused";
+                                interval_hours: number;
+                                daily_run_budget: number;
+                                runs_today: number;
+                                last_run_at: string | null;
+                                next_run_at: string | null;
+                                target_countries: string[];
+                                target_industries: string[];
+                                temporal_schedule_id: string | null;
+                                created_at: string;
+                                updated_at: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
