@@ -5396,6 +5396,389 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/v1/companies/{id}/buying-committee": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                company_id: string;
+                                /** Format: uuid */
+                                person_id: string;
+                                person_name: string | null;
+                                person_title: string | null;
+                                /** @enum {string} */
+                                committee_role: "economic_buyer" | "champion" | "technical_evaluator" | "procurement" | "legal" | "end_user" | "blocker" | "coach" | "budget_owner" | "influencer" | "unknown";
+                                /** @enum {string} */
+                                claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                confidence: number;
+                                rationale: string;
+                                evidence_ids: string[];
+                                /** @enum {string} */
+                                status: "active" | "dismissed";
+                                created_at: string;
+                            }[];
+                            coverage: {
+                                coverage_score: number;
+                                filled_required: string[];
+                                missing_required: string[];
+                                budget_owner_present: boolean;
+                                budget_owner_grounded: boolean;
+                                note: string;
+                            };
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        person_id: string;
+                        /** @enum {string} */
+                        committee_role: "economic_buyer" | "champion" | "technical_evaluator" | "procurement" | "legal" | "end_user" | "blocker" | "coach" | "budget_owner" | "influencer" | "unknown";
+                        /**
+                         * @default user_assertion
+                         * @enum {string}
+                         */
+                        claim_type?: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                        /** @default 0.5 */
+                        confidence?: number;
+                        rationale: string;
+                        /** @default [] */
+                        evidence_ids?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            member: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                company_id: string;
+                                /** Format: uuid */
+                                person_id: string;
+                                person_name: string | null;
+                                person_title: string | null;
+                                /** @enum {string} */
+                                committee_role: "economic_buyer" | "champion" | "technical_evaluator" | "procurement" | "legal" | "end_user" | "blocker" | "coach" | "budget_owner" | "influencer" | "unknown";
+                                /** @enum {string} */
+                                claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                confidence: number;
+                                rationale: string;
+                                evidence_ids: string[];
+                                /** @enum {string} */
+                                status: "active" | "dismissed";
+                                created_at: string;
+                            };
+                            coverage: {
+                                coverage_score: number;
+                                filled_required: string[];
+                                missing_required: string[];
+                                budget_owner_present: boolean;
+                                budget_owner_grounded: boolean;
+                                note: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/buying-committee/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status?: "active" | "dismissed";
+                        rationale?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            company_id: string;
+                            /** Format: uuid */
+                            person_id: string;
+                            person_name: string | null;
+                            person_title: string | null;
+                            /** @enum {string} */
+                            committee_role: "economic_buyer" | "champion" | "technical_evaluator" | "procurement" | "legal" | "end_user" | "blocker" | "coach" | "budget_owner" | "influencer" | "unknown";
+                            /** @enum {string} */
+                            claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                            confidence: number;
+                            rationale: string;
+                            evidence_ids: string[];
+                            /** @enum {string} */
+                            status: "active" | "dismissed";
+                            created_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/companies/{id}/account-plans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                company_id: string;
+                                version: number;
+                                /** @enum {string} */
+                                status: "draft" | "active" | "archived";
+                                title: string;
+                                situation: string;
+                                objective: string;
+                                strategy: string;
+                                risks: string;
+                                next_steps: string;
+                                coverage_score: number;
+                                coverage_note: string;
+                                reporting_note: string;
+                                assigned_manager_user_id: string | null;
+                                created_at: string;
+                                updated_at: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        situation: string;
+                        objective: string;
+                        strategy: string;
+                        /** @default  */
+                        risks?: string;
+                        next_steps: string;
+                        assigned_manager_user_id?: string | null;
+                        /** @default false */
+                        activate?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            company_id: string;
+                            version: number;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "archived";
+                            title: string;
+                            situation: string;
+                            objective: string;
+                            strategy: string;
+                            risks: string;
+                            next_steps: string;
+                            coverage_score: number;
+                            coverage_note: string;
+                            reporting_note: string;
+                            assigned_manager_user_id: string | null;
+                            created_at: string;
+                            updated_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account-plans/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status?: "draft" | "active" | "archived";
+                        assigned_manager_user_id?: string | null;
+                        next_steps?: string;
+                        risks?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            company_id: string;
+                            version: number;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "archived";
+                            title: string;
+                            situation: string;
+                            objective: string;
+                            strategy: string;
+                            risks: string;
+                            next_steps: string;
+                            coverage_score: number;
+                            coverage_note: string;
+                            reporting_note: string;
+                            assigned_manager_user_id: string | null;
+                            created_at: string;
+                            updated_at: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

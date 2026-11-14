@@ -595,9 +595,62 @@ export interface AccountAssignmentsTable {
   tenant_id: string;
   company_id: string;
   owner_user_id: string | null;
+  manager_user_id: string | null;
   stage: Generated<PipelineStage>;
   priority: Generated<'low' | 'normal' | 'high'>;
   next_action_at: Timestamp | null;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export type CommitteeRole =
+  | 'economic_buyer'
+  | 'champion'
+  | 'technical_evaluator'
+  | 'procurement'
+  | 'legal'
+  | 'end_user'
+  | 'blocker'
+  | 'coach'
+  | 'budget_owner'
+  | 'influencer'
+  | 'unknown';
+
+export interface BuyingCommitteeMembersTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  person_id: string;
+  committee_role: CommitteeRole;
+  claim_type: ClaimType;
+  confidence: Numeric;
+  rationale: string;
+  evidence_ids: Json;
+  status: Generated<'active' | 'dismissed'>;
+  created_by: string;
+  updated_by: string | null;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
+export interface AccountPlansTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  version: Generated<number>;
+  status: Generated<'draft' | 'active' | 'archived'>;
+  title: string;
+  situation: string;
+  objective: string;
+  strategy: string;
+  risks: Generated<string>;
+  next_steps: string;
+  coverage_score: Generated<number>;
+  coverage_note: Generated<string>;
+  reporting_note: Generated<string>;
+  assigned_manager_user_id: string | null;
+  created_by: string;
+  updated_by: string | null;
   created_at: GeneratedTimestamp;
   updated_at: GeneratedTimestamp;
 }
@@ -955,4 +1008,6 @@ export interface Database {
   radar_missions: RadarMissionsTable;
   radar_mission_runs: RadarMissionRunsTable;
   account_intelligence_reports: AccountIntelligenceReportsTable;
+  buying_committee_members: BuyingCommitteeMembersTable;
+  account_plans: AccountPlansTable;
 }

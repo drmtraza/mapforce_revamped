@@ -1,5 +1,8 @@
 # Contract changelog
 
+## 2026-11-15 (Phase 15)
+- **`openapi.v1.json` — additive.** Buying committee + account plans endpoints. See `docs/PHASE_15_REPORT.md`.
+
 ## 2026-11-15 (Phase 14)
 - **`openapi.v1.json` — additive.** Account intelligence generate/list/review endpoints (`account-intel/1.0.0`). See `docs/PHASE_14_REPORT.md`.
 

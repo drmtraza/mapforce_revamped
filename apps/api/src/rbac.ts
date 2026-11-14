@@ -43,7 +43,11 @@ export type Permission =
   | 'mission.manage'
   | 'intel.read'
   | 'intel.generate'
-  | 'intel.review';
+  | 'intel.review'
+  | 'committee.read'
+  | 'committee.write'
+  | 'plan.read'
+  | 'plan.write';
 
 const ALL: MembershipRole[] = [
   'owner',
@@ -98,6 +102,10 @@ const MATRIX: Record<Permission, readonly MembershipRole[]> = {
   'intel.read': ALL,
   'intel.generate': ['owner', 'admin', 'manager', 'researcher'],
   'intel.review': ['owner', 'admin', 'manager'],
+  'committee.read': ALL,
+  'committee.write': ['owner', 'admin', 'manager', 'researcher'],
+  'plan.read': ALL,
+  'plan.write': ['owner', 'admin', 'manager'],
 };
 
 export function can(role: MembershipRole, permission: Permission): boolean {

@@ -104,6 +104,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - One-click generate on company page; accept/dismiss without CRM write.
 - Contabo deploy, D12, Hermes live, Stripe remain out of scope.
 
+## Phase 15 — Buying committee + account plans
+- Stakeholder classifications with claim types and evidence rules.
+- Coverage score for required roles; budget_owner requires evidence.
+- Versioned account plans with manager assign; no invented reporting lines.
+- Contabo deploy, D12, Hermes live, Stripe remain out of scope.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.
