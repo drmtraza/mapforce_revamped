@@ -331,4 +331,4 @@ Phases 2–7: acceptance criteria are the roadmap exit criteria (§6) plus PRD �
 
 Owner reviews §3 and §4. On approval of D1–D8 and D11, implementation of Phase 1 begins on `phase-1/foundation-vertical-slice` in small commits, each followed by format/lint/typecheck/test runs with results reported verbatim.
 
-**Status:** Phases 1–15 implemented (see respective `PHASE_*_REPORT.md`). Phase 15 buying committee on `phase-15/buying-committee`. D12 remains open. D13 ADR still awaiting owner vendor choice. Later Agentic BD OS phases (16+) are planned only. GA packaging is not a readiness claim.
+**Status:** Phases 1–16 implemented (see respective `PHASE_*_REPORT.md`). Phase 16 tenders + competitors on `phase-16/tenders-competitors`. D12 remains open. D13 ADR still awaiting owner vendor choice. Later Agentic BD OS phases (17+) are planned only. GA packaging is not a readiness claim.
