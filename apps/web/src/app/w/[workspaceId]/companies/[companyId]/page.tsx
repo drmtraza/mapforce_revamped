@@ -9,6 +9,7 @@ import { EvidenceList, formatDate } from '@/components/evidence-list';
 import { Empty, ErrorNotice, Loading } from '@/components/feedback';
 import { OrgMapView } from '@/components/org-map';
 import { BdPanel } from '@/components/bd-panel';
+import { IntelPanel } from '@/components/intel-panel';
 import { MatchPanel } from '@/components/match-panel';
 import { OrgMapPanel, OutreachDrafts } from '@/components/org-map-panel';
 import { ResearchPanel } from '@/components/research-panel';
@@ -145,6 +146,7 @@ export default function CompanyPage() {
 
       <BdPanel workspaceId={workspaceId} companyId={companyId} onChanged={refresh} />
       <MatchPanel workspaceId={workspaceId} companyId={companyId} />
+      <IntelPanel workspaceId={workspaceId} companyId={companyId} />
 
       <ResearchPanel
         workspaceId={workspaceId}

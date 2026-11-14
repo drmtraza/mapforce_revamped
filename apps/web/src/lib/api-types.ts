@@ -5158,6 +5158,244 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/companies/{id}/account-intelligence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                company_id: string;
+                                /** @enum {string} */
+                                status: "draft_for_review" | "accepted" | "dismissed" | "quarantined";
+                                orchestrator_version: string;
+                                provider: string;
+                                gateway_provider: string;
+                                summary: string;
+                                sections: {
+                                    id: string;
+                                    title: string;
+                                    claims: {
+                                        key: string;
+                                        text: string;
+                                        /** @enum {string} */
+                                        claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                        evidence_ids: string[];
+                                        /** @enum {string} */
+                                        agent: "research" | "signals" | "matching" | "evidence_check";
+                                    }[];
+                                }[];
+                                quarantined_claims: {
+                                    key: string;
+                                    text: string;
+                                    /** @enum {string} */
+                                    claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                    evidence_ids: string[];
+                                    /** @enum {string} */
+                                    agent: "research" | "signals" | "matching" | "evidence_check";
+                                }[];
+                                agent_trace: {
+                                    agent: string;
+                                    ok: boolean;
+                                    detail: string;
+                                    duration_ms: number;
+                                }[];
+                                token_count: number;
+                                duration_ms: number;
+                                review_note: string | null;
+                                created_at: string;
+                                note: string;
+                            }[];
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            company_id: string;
+                            /** @enum {string} */
+                            status: "draft_for_review" | "accepted" | "dismissed" | "quarantined";
+                            orchestrator_version: string;
+                            provider: string;
+                            gateway_provider: string;
+                            summary: string;
+                            sections: {
+                                id: string;
+                                title: string;
+                                claims: {
+                                    key: string;
+                                    text: string;
+                                    /** @enum {string} */
+                                    claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                    evidence_ids: string[];
+                                    /** @enum {string} */
+                                    agent: "research" | "signals" | "matching" | "evidence_check";
+                                }[];
+                            }[];
+                            quarantined_claims: {
+                                key: string;
+                                text: string;
+                                /** @enum {string} */
+                                claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                evidence_ids: string[];
+                                /** @enum {string} */
+                                agent: "research" | "signals" | "matching" | "evidence_check";
+                            }[];
+                            agent_trace: {
+                                agent: string;
+                                ok: boolean;
+                                detail: string;
+                                duration_ms: number;
+                            }[];
+                            token_count: number;
+                            duration_ms: number;
+                            review_note: string | null;
+                            created_at: string;
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/account-intelligence/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "accepted" | "dismissed";
+                        review_note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            company_id: string;
+                            /** @enum {string} */
+                            status: "draft_for_review" | "accepted" | "dismissed" | "quarantined";
+                            orchestrator_version: string;
+                            provider: string;
+                            gateway_provider: string;
+                            summary: string;
+                            sections: {
+                                id: string;
+                                title: string;
+                                claims: {
+                                    key: string;
+                                    text: string;
+                                    /** @enum {string} */
+                                    claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                    evidence_ids: string[];
+                                    /** @enum {string} */
+                                    agent: "research" | "signals" | "matching" | "evidence_check";
+                                }[];
+                            }[];
+                            quarantined_claims: {
+                                key: string;
+                                text: string;
+                                /** @enum {string} */
+                                claim_type: "source_fact" | "provider_fact" | "model_inference" | "user_assertion";
+                                evidence_ids: string[];
+                                /** @enum {string} */
+                                agent: "research" | "signals" | "matching" | "evidence_check";
+                            }[];
+                            agent_trace: {
+                                agent: string;
+                                ok: boolean;
+                                detail: string;
+                                duration_ms: number;
+                            }[];
+                            token_count: number;
+                            duration_ms: number;
+                            review_note: string | null;
+                            created_at: string;
+                            note: string;
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

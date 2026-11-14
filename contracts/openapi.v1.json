@@ -10923,6 +10923,781 @@
           }
         }
       }
+    },
+    "/api/v1/companies/{id}/account-intelligence": {
+      "post": {
+        "tags": [
+          "agents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "company_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft_for_review",
+                        "accepted",
+                        "dismissed",
+                        "quarantined"
+                      ]
+                    },
+                    "orchestrator_version": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "type": "string"
+                    },
+                    "gateway_provider": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "sections": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "claims": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "type": "string"
+                                },
+                                "claim_type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "source_fact",
+                                    "provider_fact",
+                                    "model_inference",
+                                    "user_assertion"
+                                  ]
+                                },
+                                "evidence_ids": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "agent": {
+                                  "type": "string",
+                                  "enum": [
+                                    "research",
+                                    "signals",
+                                    "matching",
+                                    "evidence_check"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "text",
+                                "claim_type",
+                                "evidence_ids",
+                                "agent"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "claims"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "quarantined_claims": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "claim_type": {
+                            "type": "string",
+                            "enum": [
+                              "source_fact",
+                              "provider_fact",
+                              "model_inference",
+                              "user_assertion"
+                            ]
+                          },
+                          "evidence_ids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "agent": {
+                            "type": "string",
+                            "enum": [
+                              "research",
+                              "signals",
+                              "matching",
+                              "evidence_check"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "text",
+                          "claim_type",
+                          "evidence_ids",
+                          "agent"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "agent_trace": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "agent": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "detail": {
+                            "type": "string"
+                          },
+                          "duration_ms": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "agent",
+                          "ok",
+                          "detail",
+                          "duration_ms"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "token_count": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "duration_ms": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "review_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "company_id",
+                    "status",
+                    "orchestrator_version",
+                    "provider",
+                    "gateway_provider",
+                    "summary",
+                    "sections",
+                    "quarantined_claims",
+                    "agent_trace",
+                    "token_count",
+                    "duration_ms",
+                    "review_note",
+                    "created_at",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "agents"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "company_id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "draft_for_review",
+                              "accepted",
+                              "dismissed",
+                              "quarantined"
+                            ]
+                          },
+                          "orchestrator_version": {
+                            "type": "string"
+                          },
+                          "provider": {
+                            "type": "string"
+                          },
+                          "gateway_provider": {
+                            "type": "string"
+                          },
+                          "summary": {
+                            "type": "string"
+                          },
+                          "sections": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "title": {
+                                  "type": "string"
+                                },
+                                "claims": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "key": {
+                                        "type": "string"
+                                      },
+                                      "text": {
+                                        "type": "string"
+                                      },
+                                      "claim_type": {
+                                        "type": "string",
+                                        "enum": [
+                                          "source_fact",
+                                          "provider_fact",
+                                          "model_inference",
+                                          "user_assertion"
+                                        ]
+                                      },
+                                      "evidence_ids": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "string"
+                                        }
+                                      },
+                                      "agent": {
+                                        "type": "string",
+                                        "enum": [
+                                          "research",
+                                          "signals",
+                                          "matching",
+                                          "evidence_check"
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "key",
+                                      "text",
+                                      "claim_type",
+                                      "evidence_ids",
+                                      "agent"
+                                    ],
+                                    "additionalProperties": false
+                                  }
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "title",
+                                "claims"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "quarantined_claims": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "type": "string"
+                                },
+                                "claim_type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "source_fact",
+                                    "provider_fact",
+                                    "model_inference",
+                                    "user_assertion"
+                                  ]
+                                },
+                                "evidence_ids": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "agent": {
+                                  "type": "string",
+                                  "enum": [
+                                    "research",
+                                    "signals",
+                                    "matching",
+                                    "evidence_check"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "text",
+                                "claim_type",
+                                "evidence_ids",
+                                "agent"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "agent_trace": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "agent": {
+                                  "type": "string"
+                                },
+                                "ok": {
+                                  "type": "boolean"
+                                },
+                                "detail": {
+                                  "type": "string"
+                                },
+                                "duration_ms": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991
+                                }
+                              },
+                              "required": [
+                                "agent",
+                                "ok",
+                                "detail",
+                                "duration_ms"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "token_count": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "duration_ms": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "review_note": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "note": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "company_id",
+                          "status",
+                          "orchestrator_version",
+                          "provider",
+                          "gateway_provider",
+                          "summary",
+                          "sections",
+                          "quarantined_claims",
+                          "agent_trace",
+                          "token_count",
+                          "duration_ms",
+                          "review_note",
+                          "created_at",
+                          "note"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/account-intelligence/{id}": {
+      "patch": {
+        "tags": [
+          "agents"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "accepted",
+                      "dismissed"
+                    ]
+                  },
+                  "review_note": {
+                    "type": "string",
+                    "maxLength": 2000
+                  }
+                },
+                "required": [
+                  "status"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "company_id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "draft_for_review",
+                        "accepted",
+                        "dismissed",
+                        "quarantined"
+                      ]
+                    },
+                    "orchestrator_version": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "type": "string"
+                    },
+                    "gateway_provider": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "sections": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "claims": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "type": "string"
+                                },
+                                "claim_type": {
+                                  "type": "string",
+                                  "enum": [
+                                    "source_fact",
+                                    "provider_fact",
+                                    "model_inference",
+                                    "user_assertion"
+                                  ]
+                                },
+                                "evidence_ids": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  }
+                                },
+                                "agent": {
+                                  "type": "string",
+                                  "enum": [
+                                    "research",
+                                    "signals",
+                                    "matching",
+                                    "evidence_check"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "text",
+                                "claim_type",
+                                "evidence_ids",
+                                "agent"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "title",
+                          "claims"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "quarantined_claims": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "text": {
+                            "type": "string"
+                          },
+                          "claim_type": {
+                            "type": "string",
+                            "enum": [
+                              "source_fact",
+                              "provider_fact",
+                              "model_inference",
+                              "user_assertion"
+                            ]
+                          },
+                          "evidence_ids": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "agent": {
+                            "type": "string",
+                            "enum": [
+                              "research",
+                              "signals",
+                              "matching",
+                              "evidence_check"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "text",
+                          "claim_type",
+                          "evidence_ids",
+                          "agent"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "agent_trace": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "agent": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "detail": {
+                            "type": "string"
+                          },
+                          "duration_ms": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": [
+                          "agent",
+                          "ok",
+                          "detail",
+                          "duration_ms"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "token_count": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "duration_ms": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "review_note": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "created_at": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "company_id",
+                    "status",
+                    "orchestrator_version",
+                    "provider",
+                    "gateway_provider",
+                    "summary",
+                    "sections",
+                    "quarantined_claims",
+                    "agent_trace",
+                    "token_count",
+                    "duration_ms",
+                    "review_note",
+                    "created_at",
+                    "note"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -98,6 +98,12 @@ Exit criteria: published test report documents supported workload and remaining 
 - Web Opportunity radar page; claim labels verified vs inference.
 - Contabo deploy, D12, Hermes, Stripe remain out of scope.
 
+## Phase 14 — AI gateway + account intelligence
+- Gateway reuses mock/Hermes selector (Hermes still off by default).
+- Deterministic multi-agent orchestrator produces draft reports with quarantine + traces.
+- One-click generate on company page; accept/dismiss without CRM write.
+- Contabo deploy, D12, Hermes live, Stripe remain out of scope.
+
 ## Definition of done for every phase
 - Acceptance criteria met.
 - Tests added and executed.

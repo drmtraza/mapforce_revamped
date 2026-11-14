@@ -1,5 +1,8 @@
 # Contract changelog
 
+## 2026-11-15 (Phase 14)
+- **`openapi.v1.json` — additive.** Account intelligence generate/list/review endpoints (`account-intel/1.0.0`). See `docs/PHASE_14_REPORT.md`.
+
 ## 2026-11-15 (Phase 13)
 - **`openapi.v1.json` — additive, non-breaking.** Opportunity radar feed + radar missions (pause/resume/budget/run-now). See `docs/PHASE_13_REPORT.md`.
 - **`adapter-result.v1.schema.json` — additive.** `signal_type` enum adds `tender`, `leadership_change`, `expansion`, `partnership`.

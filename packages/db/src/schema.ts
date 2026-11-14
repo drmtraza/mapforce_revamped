@@ -872,6 +872,27 @@ export interface RadarMissionRunsTable {
   created_at: GeneratedTimestamp;
 }
 
+export interface AccountIntelligenceReportsTable {
+  id: Generated<string>;
+  tenant_id: string;
+  company_id: string;
+  status: Generated<'draft_for_review' | 'accepted' | 'dismissed' | 'quarantined'>;
+  orchestrator_version: Generated<string>;
+  provider: 'mock' | 'hermes' | 'fallback' | 'deterministic';
+  summary: string;
+  sections: Json;
+  quarantined_claims: Json;
+  agent_trace: Json;
+  token_count: Generated<number>;
+  duration_ms: Generated<number>;
+  review_note: string | null;
+  created_by: string;
+  reviewed_by: string | null;
+  reviewed_at: Timestamp | null;
+  created_at: GeneratedTimestamp;
+  updated_at: GeneratedTimestamp;
+}
+
 export interface Database {
   users: UsersTable;
   sessions: SessionsTable;
@@ -933,4 +954,5 @@ export interface Database {
   market_opportunities: MarketOpportunitiesTable;
   radar_missions: RadarMissionsTable;
   radar_mission_runs: RadarMissionRunsTable;
+  account_intelligence_reports: AccountIntelligenceReportsTable;
 }
